@@ -1,0 +1,41 @@
+{
+  "name": "esummit-backend",
+  "version": "1.0.0",
+  "description": "Backend for testing face recognition",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js",
+    "start:production": "NODE_ENV=production nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Palanikannan1437/esummit-backend.git"
+  },
+  "author": "palanikannan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Palanikannan1437/esummit-backend/issues"
+  },
+  "homepage": "https://github.com/Palanikannan1437/esummit-backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "google-auth-library": "^8.0.2",
+    "mongoose": "^5.13.14",
+    "morgan": "^1.10.0",
+    "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.12.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.29.4",
+    "prettier": "^2.6.2"
+  }
+}
