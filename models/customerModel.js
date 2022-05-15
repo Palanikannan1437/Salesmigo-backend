@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 
-const EmployeeSchema = mongoose.Schema({
+const CustomerSchema = mongoose.Schema({
   customer_name: {
     type: String,
     required: [true, "Please tell us your name!"],
   },
+
   customer_email: {
     type: String,
     required: [true, "Please provide your email"],
@@ -14,12 +15,23 @@ const EmployeeSchema = mongoose.Schema({
     validate: [validator.isEmail, "Please provide a valid email"],
   },
 
-  customer_photo: String,
-  customer_address: String,
+  customer_location: String,
   customer_phoneNumber: String,
-  customer_DateOfBirth: Date,
+  customer_dateOfBirth: Date,
+  customer_images: Array,
+
+  customer_img_label: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
+  customer_img_descriptions: {
+    type: Array,
+    required: true,
+  },
 });
 
-const Employee = mongoose.model("Employee", EmployeeSchema);
+const Customer = mongoose.model("Customer", CustomerSchema);
 
-module.exports = Employee;
+module.exports = Customer;
