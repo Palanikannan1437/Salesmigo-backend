@@ -26,8 +26,7 @@
     "google-auth-library": "^8.0.2",
     "mongoose": "^5.13.14",
     "morgan": "^1.10.0",
-    "validator": "^13.7.0",
-    "@tensorflow/tfjs-node": "^3.17.0"
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "cookie-parser": "^1.4.6",
