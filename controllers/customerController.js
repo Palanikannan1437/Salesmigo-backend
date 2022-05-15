@@ -23,15 +23,23 @@ exports.registerCustomer = catchAsync(async (req, res, next) => {
     customer_img_label: req.body.customer_name + "_" + req.body.customer_email,
   });
   res.status(201).json({
-    status: "Customer Registered",
-    employee: newCustomer,
+    status: `Customer ${newCustomer.customer_name} Registered`,
   });
 });
 
 exports.findCustomer = catchAsync(async (req, res, next) => {
-  let result = await faceDetectionContoller.getDescriptorsFromDB(req.body.customer_images.url);
+  console.log(req.body);
+  let result = await faceDetectionContoller.getDescriptorsFromDB(
+    req.body.descriptor
+  );
+  console.log("result!!!: ", result);
+  if (result._label === "unknown") {
+    return res.status(200).json({
+      status: "Customer Not Found!",
+    });
+  }
   res.status(200).json({
     status: "Customer Found!",
-    employee: result,
+    customer: result,
   });
 });
