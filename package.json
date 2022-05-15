@@ -1,12 +1,12 @@
 {
-  "name": "esummit-backend",
+  "name": "salesmigo-backend",
   "version": "1.0.0",
-  "description": "Backend for testing face recognition",
+  "description": "Backend for face recognition",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js",
-    "start:production": "NODE_ENV=production nodemon server.js"
+    "start": "node server.js",
+    "start:production": "NODE_ENV=production node server.js"
   },
   "repository": {
     "type": "git",
