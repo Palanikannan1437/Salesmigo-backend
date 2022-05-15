@@ -26,6 +26,7 @@
     "google-auth-library": "^8.0.2",
     "mongoose": "^5.13.14",
     "morgan": "^1.10.0",
+    "nodemon": "^2.0.16",
     "validator": "^13.7.0"
   },
   "devDependencies": {
