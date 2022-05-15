@@ -1,6 +1,5 @@
 const customerModel = require("../models/customerModel");
-const { catchAsync } = require("../utils/catchAsync");
-// require('@tensorflow/tfjs-node');
+require('@tensorflow/tfjs-node');
 const faceapi = require("face-api.js");
 const { Canvas, Image } = require("canvas");
 const canvas = require("canvas");
