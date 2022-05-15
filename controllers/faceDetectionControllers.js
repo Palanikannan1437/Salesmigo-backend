@@ -1,5 +1,9 @@
 const customerModel = require("../models/customerModel");
-require('@tensorflow/tfjs-node');
+
+if (process.env.NODE_ENV === "production") {
+  require("@tensorflow/tfjs-node");
+}
+
 const faceapi = require("face-api.js");
 const { Canvas, Image } = require("canvas");
 const canvas = require("canvas");
