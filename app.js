@@ -32,7 +32,7 @@ app.use("/api/v1/customers", customerRouter);
 async function LoadModels() {
   await faceapi.nets.faceRecognitionNet.loadFromDisk(__dirname + "/modelsFace");
   await faceapi.nets.faceLandmark68Net.loadFromDisk(__dirname + "/modelsFace");
-  await faceapi.nets.ssdMobilenetv1.loadFromDisk(__dirname + "/modelsFace");
+  await faceapi.nets.tinyFaceDetector.loadFromDisk(__dirname + "/modelsFace");
 }
 LoadModels();
 

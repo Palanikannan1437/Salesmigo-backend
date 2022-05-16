@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Palanikannan1437/esummit-backend#readme",
   "dependencies": {
+    "@tensorflow/tfjs-node": "^3.17.0",
     "canvas": "^2.9.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",

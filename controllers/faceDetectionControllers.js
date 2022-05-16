@@ -1,12 +1,11 @@
 const customerModel = require("../models/customerModel");
 
-if (process.env.NODE_ENV === "production") {
-  require("@tensorflow/tfjs-node");
-}
+require("@tensorflow/tfjs-node");
 
 const faceapi = require("face-api.js");
 const { Canvas, Image } = require("canvas");
 const canvas = require("canvas");
+const { TinyFaceDetectorOptions } = require("face-api.js");
 
 faceapi.env.monkeyPatch({ Canvas, Image });
 
@@ -17,7 +16,7 @@ exports.uploadLabeledImages = async (images) => {
     const img = await canvas.loadImage(images[i]);
 
     const detections = await faceapi
-      .detectSingleFace(img)
+      .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
     descriptions.push(detections.descriptor);
