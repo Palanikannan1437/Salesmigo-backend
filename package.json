@@ -20,10 +20,10 @@
   "homepage": "https://github.com/Palanikannan1437/esummit-backend#readme",
   "dependencies": {
     "@tensorflow/tfjs-node": "^3.17.0",
+    "@vladmandic/face-api": "^1.6.8",
     "canvas": "^2.9.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
-    "face-api.js": "^0.22.2",
     "google-auth-library": "^8.0.2",
     "mongoose": "^5.13.14",
     "morgan": "^1.10.0",
