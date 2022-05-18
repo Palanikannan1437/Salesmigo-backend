@@ -53,7 +53,7 @@ exports.getDescriptorsFromDB = async (detectionDescriptor) => {
     detectionDescriptor,
     displaySize
   );
-
+  
   const results = faceMatcher.findBestMatch(
     new Float32Array(Object.values(resizedDetections))
   );

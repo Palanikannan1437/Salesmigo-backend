@@ -14,8 +14,8 @@ customerRouter
 customerRouter
   .route("/customer/find")
   .post(
-    authController.protect,
-    authController.restrictTo("Manager", "Worker"),
+    // authController.protect,
+    // authController.restrictTo("Manager", "Worker"),
     customerController.findCustomer
   );
 
