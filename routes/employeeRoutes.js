@@ -9,8 +9,8 @@ employeeRouter.route("/login-google").post(authController.login_google);
 employeeRouter
   .route("/worker")
   .post(
-    authController.protect,
-    authController.restrictTo("Manager"),
+    // authController.protect,
+    // authController.restrictTo("Manager"),
     employeeController.registerWorker
   );
 
