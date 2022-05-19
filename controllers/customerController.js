@@ -1,6 +1,6 @@
 const customerModel = require("../models/customerModel");
 const faceDetectionContoller = require("./faceDetectionControllers");
-const { catchAsync } = require("../utils/catchAsync");
+const catchAsync  = require("../utils/catchAsync");
 
 exports.registerCustomer = catchAsync(async (req, res, next) => {
   const images = req.body.customer_images.map((files) => {
@@ -28,11 +28,9 @@ exports.registerCustomer = catchAsync(async (req, res, next) => {
 });
 
 exports.findCustomer = catchAsync(async (req, res, next) => {
-  console.log(req.body);
   let result = await faceDetectionContoller.getDescriptorsFromDB(
     req.body.descriptor
   );
-  console.log("result!!!: ", result);
   if (result._label === "unknown") {
     return res.status(200).json({
       status: "Customer Not Found!",

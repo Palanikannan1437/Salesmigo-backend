@@ -7,8 +7,8 @@ const authController = require("../controllers/authController");
 customerRouter
   .route("/customer")
   .post(
-    authController.protect,
-    authController.restrictTo("Manager", "Worker"),
+    // authController.protect,
+    // authController.restrictTo("Manager", "Worker"),
     customerController.registerCustomer
   );
 customerRouter

@@ -29,7 +29,6 @@ exports.getDescriptorsFromDB = async (detectionDescriptor) => {
     {},
     { customer_img_label: 1, customer_img_descriptions: 1 }
   );
-
   for (i = 0; i < faces.length; i++) {
     for (j = 0; j < faces[i].customer_img_descriptions.length; j++) {
       faces[i].customer_img_descriptions[j] = new Float32Array(

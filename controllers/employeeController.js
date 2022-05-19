@@ -1,5 +1,5 @@
 const employeeModel = require("../models/employeeModel");
-const { catchAsync } = require("../utils/catchAsync");
+const catchAsync = require("../utils/catchAsync");
 
 exports.registerWorker = catchAsync(async (req, res, next) => {
   const newEmployee = await employeeModel.create({
@@ -19,7 +19,7 @@ exports.registerManager = catchAsync(async (req, res, next) => {
     employee_designation: "Manager",
   });
   res.status(201).json({
-    status: "Employee Registered",  
+    status: "Employee Registered",
     employee: newEmployee,
   });
 });
