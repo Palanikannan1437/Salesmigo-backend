@@ -38,15 +38,15 @@ const io = new Server(httpServer, {
   },
 });
 
-// app.use(require("./SocketArchitecture/Websockets")(io));
+app.use(require("./controllers/SocketArchitecture/Websockets")(io));
 //initializing our socket connection
-io.on("connection", (socket) => {
-  console.log("User with socketId %s connected", socket.id);
-  // io.disconnectSockets();
-  socket.on("disconnect", () => {
-    console.log("User with socketId %s disconnected", socket.id);
-  });
-});
+// io.on("connection", (socket) => {
+//   console.log("User with socketId %s connected", socket.id);
+//   // io.disconnectSockets();
+//   socket.on("disconnect", () => {
+//     console.log("User with socketId %s disconnected", socket.id);
+//   });
+// });
 
 httpServer.listen(PORT, () => {
   console.log(`app running on port ${PORT}...`);

@@ -12,11 +12,19 @@ customerRouter
     customerController.registerCustomer
   );
 customerRouter
-  .route("/customer/find")
+  .route("/customer/find1")
   .post(
     // authController.protect,
     // authController.restrictTo("Manager", "Worker"),
     customerController.findCustomer
+  );
+
+  customerRouter
+  .route("/customer/find")
+  .post(
+    // authController.protect,
+    // authController.restrictTo("Manager", "Worker"),
+    customerController.findCustomer1
   );
 
 module.exports = customerRouter;

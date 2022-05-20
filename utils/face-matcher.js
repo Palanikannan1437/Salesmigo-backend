@@ -1,23 +1,23 @@
-const { euclideanDistance } = require("@vladmandic/face-api");
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
 const threads = require("worker_threads");
+const customerModel = require("../models/customerModel");
 
 // global optinos
 const options = {
-  dbFile: "customers.json", // sample face db
-  dbMax: 10000, // maximum number of records to hold in memory
+  dbFile: `${__dirname}/customers.json`, // sample face db
+  dbMax: 1000000, // maximum number of records to hold in memory (takes 512mb in memory)
   threadPoolSize: 12, // number of worker threads to create in thread pool
   workerSrc: "./face-matcher-worker.js", // code that executes in the worker thread
   debug: false, // verbose messages
-  minThreshold: 0.5, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
+  minThreshold: 0.4, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
   descLength: 128, // descriptor length
 };
 
 // test options
 const testOptions = {
-  dbFact: 3, // load db n times to fake huge size
-  maxJobs: 2000, // exit after processing this many jobs
+  dbFact: 100000, // load db n times to fake huge size
+  maxJobs: 1, // exit after processing this many jobs
   fuzDescriptors: true, // randomize descriptor content before match for harder jobs
   sampleDescriptor: new Float32Array(
     Object.values({
@@ -151,138 +151,6 @@ const testOptions = {
       127: 0.08952612429857254,
     })
   ),
-  sampleDescriptor1: new Float32Array(
-    Object.values({
-      0: -0.15803851187229156,
-      1: 0.036868564784526825,
-      2: 0.0953107476234436,
-      3: -0.05338066443800926,
-      4: -0.03425274044275284,
-      5: 0.012906731106340885,
-      6: 0.007269073277711868,
-      7: -0.06160057336091995,
-      8: 0.18385177850723267,
-      9: -0.12118233740329742,
-      10: 0.16781270503997803,
-      11: -0.05122809112071991,
-      12: -0.2060190588235855,
-      13: -0.10737667232751846,
-      14: -0.0034628906287252903,
-      15: 0.08856479823589325,
-      16: -0.06262224912643433,
-      17: -0.15665334463119507,
-      18: -0.07850180566310883,
-      19: -0.0757313221693039,
-      20: 0.022092878818511963,
-      21: -0.0021715741604566574,
-      22: -0.001872798427939415,
-      23: 0.030876323580741882,
-      24: -0.20806527137756348,
-      25: -0.3549690246582031,
-      26: -0.07835342735052109,
-      27: -0.13996723294258118,
-      28: -0.10410567373037338,
-      29: -0.10276389122009277,
-      30: -0.007622760720551014,
-      31: 0.01972544938325882,
-      32: -0.21083079278469086,
-      33: -0.06348694860935211,
-      34: -0.07943391799926758,
-      35: 0.10658437758684158,
-      36: 0.009532430209219456,
-      37: -0.000608980655670166,
-      38: 0.10778321325778961,
-      39: -0.007110690698027611,
-      40: -0.1498757153749466,
-      41: -0.07839329540729523,
-      42: 0.03877345472574234,
-      43: 0.22986534237861633,
-      44: 0.13034337759017944,
-      45: 0.04527223855257034,
-      46: 0.0059834010899066925,
-      47: 0.02369374968111515,
-      48: 0.04613468423485756,
-      49: -0.23616130650043488,
-      50: 0.042491838335990906,
-      51: 0.07351839542388916,
-      52: 0.08033473044633865,
-      53: 0.05296816676855087,
-      54: 0.10526379942893982,
-      55: -0.07393438369035721,
-      56: 0.011792842298746109,
-      57: 0.01944548636674881,
-      58: -0.15170276165008545,
-      59: 0.04095561057329178,
-      60: 0.0034035779535770416,
-      61: -0.008159996941685677,
-      62: -0.060730352997779846,
-      63: -0.027209103107452393,
-      64: 0.22398388385772705,
-      65: 0.09709880501031876,
-      66: -0.06699710339307785,
-      67: -0.09083660691976547,
-      68: 0.159636989235878,
-      69: -0.12815017998218536,
-      70: -0.025471892207860947,
-      71: 0.060603637248277664,
-      72: -0.11640249937772751,
-      73: -0.18515652418136597,
-      74: -0.26365676522254944,
-      75: 0.1213485524058342,
-      76: 0.47825178503990173,
-      77: 0.1347222924232483,
-      78: -0.11490233987569809,
-      79: 0.02780931442975998,
-      80: -0.10685659945011139,
-      81: -0.04173863306641579,
-      82: 0.03244916349649429,
-      83: -0.03512924909591675,
-      84: -0.06273051351308823,
-      85: 0.07535277307033539,
-      86: -0.04284781217575073,
-      87: 0.12446141242980957,
-      88: 0.18490779399871826,
-      89: 0.01270689070224762,
-      90: -0.06193223595619202,
-      91: 0.11202742159366608,
-      92: -0.039637260138988495,
-      93: 0.01193265337496996,
-      94: 0.02689437009394169,
-      95: -0.006332062184810638,
-      96: -0.028290284797549248,
-      97: 0.09008117765188217,
-      98: -0.11127060651779175,
-      99: 0.06184837594628334,
-      100: 0.11165568232536316,
-      101: -0.06377746909856796,
-      102: 0.034516848623752594,
-      103: 0.06435620784759521,
-      104: -0.15844804048538208,
-      105: 0.1072857454419136,
-      106: 0.02730582281947136,
-      107: -0.08811518549919128,
-      108: -0.009399665519595146,
-      109: 0.11977959424257278,
-      110: -0.2185441255569458,
-      111: -0.041572585701942444,
-      112: 0.1585673987865448,
-      113: -0.2494044005870819,
-      114: 0.15016548335552216,
-      115: 0.16930823028087616,
-      116: 0.002307455986738205,
-      117: 0.13711433112621307,
-      118: 0.055596478283405304,
-      119: 0.06182330846786499,
-      120: 0.032140158116817474,
-      121: 0.04334588348865509,
-      122: -0.12280875444412231,
-      123: -0.08231228590011597,
-      124: 0.09592785686254501,
-      125: -0.01270452979952097,
-      126: 0.09014931321144104,
-      127: 0.05640082061290741,
-    })
-  ),
 };
 
 const data = {
@@ -318,14 +186,6 @@ const appendRecords = (labels, descriptors) => {
 
 const getLabel = (index) => data.labels[index];
 
-const getDescriptor = (index) => {
-  if (!data.view) return [];
-  const descriptor = [];
-  for (let i = 0; i < 128; i++)
-    descriptor.push(data.view[index * options.descLength + i]);
-  return descriptor;
-};
-
 const delay = (ms) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -353,10 +213,10 @@ async function workersClose() {
   }
 }
 
-const workerMessage = (index, msg) => {
+const workerMessage = (index, msg, res) => {
   if (msg.request) {
     if (options.debug)
-      console.log("message:", {
+      console.log("message!!!!:", {
         worker: index,
         request: msg.request,
         time: msg.time,
@@ -384,7 +244,19 @@ const workerMessage = (index, msg) => {
       totalTimeMs: elapsed,
       averageTimeMs: Math.round((100 * elapsed) / testOptions.maxJobs) / 100,
     });
-    console.log("message:", { worker: index, msg });
+    console.log("message!!!!:", {
+      worker: index,
+      msg,
+      label: data.labels[msg.index],
+    });
+    workersClose();
+    res.status(201).json({
+      status: "Customer Found!",
+      customer: {
+        _label: data.labels[msg.index],
+        _distance: msg.distance,
+      },
+    });
   }
 };
 
@@ -396,7 +268,7 @@ async function workerClose(id, code) {
     console.log("worker exit:", { id, code, previous, current });
 }
 
-async function workersStart(numWorkers) {
+async function workersStart(numWorkers, res) {
   const previous = data.workers.filter((worker) => !!worker).length;
   console.info("starting worker thread pool:", {
     totalWorkers: numWorkers,
@@ -407,7 +279,7 @@ async function workersStart(numWorkers) {
       const worker = new threads.Worker(
         path.join(__dirname, options.workerSrc)
       );
-      worker.on("message", (msg) => workerMessage(i, msg));
+      worker.on("message", (msg) => workerMessage(i, msg, res));
       worker.on("error", (err) => console.error("worker error:", { err }));
       worker.on("exit", (code) => workerClose(i, code));
       worker.postMessage(data.buffer); // send buffer to worker
@@ -435,26 +307,51 @@ const match = (descriptor) => {
   } else console.error("no available workers");
 };
 
-async function loadDB(count) {
+// async function loadDB(count) {
+//   const previous = data.labels.length;
+//   if (!fs.existsSync(options.dbFile)) {
+//     console.error("db file does not exist:", options.dbFile);
+//     return;
+//   }
+//   t0 = process.hrtime.bigint();
+//   for (let i = 0; i < count; i++) {
+//     const db = JSON.parse(fs.readFileSync(options.dbFile).toString());
+
+//     const names = db.map((record) => record.customer_img_label);
+//     const descriptors = db.map(
+//       (record) =>
+//         new Float32Array(Object.values(record.customer_img_descriptions[0]))
+//     );
+//     appendRecords(names, descriptors);
+//   }
+//   console.log("db loaded:", {
+//     existingRecords: previous,
+//     newRecords: data.labels.length,
+//   });
+// }
+
+async function loadDBFromMongo(count, res) {
   const previous = data.labels.length;
-  if (!fs.existsSync(options.dbFile)) {
-    console.error("db file does not exist:", options.dbFile);
-    return;
-  }
+
   t0 = process.hrtime.bigint();
   for (let i = 0; i < count; i++) {
-    const db = JSON.parse(fs.readFileSync(options.dbFile).toString());
-    // console.log(
-    //   new Float32Array(Object.values(db[i].customer_img_descriptions[0]))
-    // );
-    // console.log(db[0].embedding)
-
-    const names = db.map((record) => record.customer_img_label);
-    const descriptors = db.map(
-      (record) =>
-        new Float32Array(Object.values(record.customer_img_descriptions[0]))
+    const db = await customerModel.find(
+      {},
+      { customer_img_label: 1, customer_img_descriptions: 1 }
     );
-    appendRecords(names, descriptors);
+
+    let db_expanded = [];
+    let names = [];
+
+    for (i = 0; i < db.length; i++) {
+      for (j = 0; j < db[i].customer_img_descriptions.length; j++) {
+        db_expanded.push(
+          new Float32Array(Object.values(db[i].customer_img_descriptions[j]))
+        );
+        names.push(db[i].customer_img_label);
+      }
+    }
+    appendRecords(names, db_expanded);
   }
   console.log("db loaded:", {
     existingRecords: previous,
@@ -473,18 +370,13 @@ async function createBuffer() {
   });
 }
 
-async function main() {
+module.exports = async (detectionDescriptor, req, res) => {
   await createBuffer();
-  await loadDB(testOptions.dbFact);
-  await workersStart(options.threadPoolSize);
-  for (let i = 0; i < 100; i++) {
-    const idx = Math.trunc(data.labels.length * Math.random());
-    const descriptor = getDescriptor(2);
-    console.log(
-      "distance euclidean!!",
-      euclideanDistance(descriptor, testOptions.sampleDescriptor1)
-    );
-    match(testOptions.sampleDescriptor);
+  // await loadDB(testOptions.dbFact);
+  await loadDBFromMongo(testOptions.dbFact, res);
+  await workersStart(options.threadPoolSize, res);
+  for (let i = 0; i < 1; i++) {
+    match(detectionDescriptor);
     if (options.debug) console.info("submited job", data.requestID);
   }
   console.log("submitted:", {
@@ -492,6 +384,4 @@ async function main() {
     poolSize: data.workers.length,
     activeWorkers: data.workers.filter((worker) => !!worker).length,
   });
-}
-
-main();
+};

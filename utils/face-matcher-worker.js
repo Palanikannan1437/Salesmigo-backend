@@ -5,14 +5,13 @@ let debug = false;
 
 let buffer;
 let view;
-let threshold = 0;
+let threshold = 0.4;
 let records = 0;
 
-const descLength = 1024; // descriptor length in bytes
+const descLength = 128; // descriptor length in bytes
 
 function distance(descBuffer, index) {
   const descriptor = new Float32Array(descBuffer);
-  let sum = 0;
   let array = [];
   for (let i = 0; i < descriptor.length; i++) {
     array.push(view[index * descLength + i]);
@@ -23,15 +22,15 @@ function distance(descBuffer, index) {
 function match(descBuffer) {
   let best = Number.MAX_SAFE_INTEGER;
   let index = -1;
-  console.log("RECORDS", records);
+  console.log("RECORDS!!", records);
   for (let i = 0; i < records; i++) {
     const res = distance(descBuffer, i);
     if (res < best) {
       best = res;
       index = i;
     }
-    console.log(best, "resultttt", i);
-    if (best < threshold || best === 0) break; // short circuit
+    console.log(res, threshold, "resultttt", i);
+    if (best === 0) break; // short circuit
   }
   return {
     index,
