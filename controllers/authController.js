@@ -19,13 +19,15 @@ exports.login_google = catchAsync(async (req, res, next) => {
   }
 
   res.cookie("google-jwt", req.body.idToken);
-  res.status(200).json({
+  return res.status(200).json({
     status: "Login Successful",
-    user: {
+    employee: {
       email: payload.email,
       picture: payload.picture,
       name: payload.name,
       designation: worker.employee_designation,
+      teamId: worker.employee_teamID,
+      id: worker["_id"],
     },
   });
 });
@@ -74,3 +76,4 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
+

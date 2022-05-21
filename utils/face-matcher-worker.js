@@ -1,11 +1,12 @@
 const { euclideanDistance } = require("@vladmandic/face-api");
 const threads = require("worker_threads");
+require("@tensorflow/tfjs-node");
 
 let debug = false;
 
 let buffer;
 let view;
-let threshold = 0.4;
+let threshold = 0.45;
 let records = 0;
 
 const descLength = 128; // descriptor length in bytes
@@ -30,7 +31,7 @@ function match(descBuffer) {
       index = i;
     }
     console.log(res, threshold, "resultttt", i);
-    if (best === 0) break; // short circuit
+    if (best < threshold || best === 0) break; // short circuit
   }
   return {
     index,
@@ -41,6 +42,7 @@ function match(descBuffer) {
 
 threads.parentPort?.on("message", (msg) => {
   if (typeof msg.descriptor !== "undefined") {
+    console.log("message got by worker!", msg);
     // actual work order to find a match
     // console.log(msg.descriptor,msg.request)
     const t0 = performance.now();

@@ -22,30 +22,32 @@ exports.registerCustomer = catchAsync(async (req, res, next) => {
     customer_img_descriptions: result,
     customer_img_label: req.body.customer_name + "_" + req.body.customer_email,
   });
-  res.status(201).json({
+  return res.status(201).json({
     status: `Customer ${newCustomer.customer_name} Registered`,
   });
 });
 
-exports.findCustomer = catchAsync(async (req, res, next) => {
+exports.findCustomer = catchAsync(async (req, res, next, redisClient) => {
+  console.log(redisClient);
   await faceDetectionContoller.getDescriptorsFromDB(
     new Float32Array(Object.values(req.body.descriptor)),
     req,
-    res
+    res,
+    redisClient
   );
 });
 
-// exports.findCustomer1 = catchAsync(async (req, res, next) => {
-//   let result = await faceDetectionContoller.getDescriptorsFromDB1(
-//     req.body.descriptor
-//   );
-//   if (result._label === "unknown") {
-//     return res.status(200).json({
-//       status: "Customer Not Found!",
-//     });
-//   }
-//   res.status(200).json({
-//     status: "Customer Found!",
-//     customer: result,
-//   });
-// });
+exports.findCustomer1 = catchAsync(async (req, res, next) => {
+  let result = await faceDetectionContoller.getDescriptorsFromDB1(
+    req.body.descriptor
+  );
+  if (result._label === "unknown") {
+    return res.status(200).json({
+      status: "Customer Not Found!",
+    });
+  }
+  res.status(200).json({
+    status: "Customer Found!",
+    customer: result,
+  });
+});

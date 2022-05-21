@@ -2,6 +2,8 @@ const path = require("path");
 const fs = require("fs");
 const threads = require("worker_threads");
 const customerModel = require("../models/customerModel");
+const cacheController = require("../controllers/Redis/cacheController");
+require("@tensorflow/tfjs-node");
 
 // global optinos
 const options = {
@@ -10,14 +12,14 @@ const options = {
   threadPoolSize: 12, // number of worker threads to create in thread pool
   workerSrc: "./face-matcher-worker.js", // code that executes in the worker thread
   debug: false, // verbose messages
-  minThreshold: 0.4, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
+  minThreshold: 0.5, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
   descLength: 128, // descriptor length
 };
 
 // test options
 const testOptions = {
-  dbFact: 100000, // load db n times to fake huge size
-  maxJobs: 1, // exit after processing this many jobs
+  dbFact: 1, // load db n times to fake huge size
+  maxJobs: 200, // exit after processing this many jobs
   fuzDescriptors: true, // randomize descriptor content before match for harder jobs
   sampleDescriptor: new Float32Array(
     Object.values({
@@ -213,7 +215,8 @@ async function workersClose() {
   }
 }
 
-const workerMessage = (index, msg, res) => {
+const workerMessage = (index, msg) => {
+  console.log("msg.request", msg.request);
   if (msg.request) {
     if (options.debug)
       console.log("message!!!!:", {
@@ -250,13 +253,10 @@ const workerMessage = (index, msg, res) => {
       label: data.labels[msg.index],
     });
     workersClose();
-    res.status(201).json({
-      status: "Customer Found!",
-      customer: {
-        _label: data.labels[msg.index],
-        _distance: msg.distance,
-      },
-    });
+    return {
+      _label: data.labels[msg.index],
+      _distance: msg.distance,
+    };
   }
 };
 
@@ -268,7 +268,7 @@ async function workerClose(id, code) {
     console.log("worker exit:", { id, code, previous, current });
 }
 
-async function workersStart(numWorkers, res) {
+async function workersStart(numWorkers) {
   const previous = data.workers.filter((worker) => !!worker).length;
   console.info("starting worker thread pool:", {
     totalWorkers: numWorkers,
@@ -279,7 +279,7 @@ async function workersStart(numWorkers, res) {
       const worker = new threads.Worker(
         path.join(__dirname, options.workerSrc)
       );
-      worker.on("message", (msg) => workerMessage(i, msg, res));
+      worker.on("message", (msg) => workerMessage(i, msg));
       worker.on("error", (err) => console.error("worker error:", { err }));
       worker.on("exit", (code) => workerClose(i, code));
       worker.postMessage(data.buffer); // send buffer to worker
@@ -307,28 +307,28 @@ const match = (descriptor) => {
   } else console.error("no available workers");
 };
 
-// async function loadDB(count) {
-//   const previous = data.labels.length;
-//   if (!fs.existsSync(options.dbFile)) {
-//     console.error("db file does not exist:", options.dbFile);
-//     return;
-//   }
-//   t0 = process.hrtime.bigint();
-//   for (let i = 0; i < count; i++) {
-//     const db = JSON.parse(fs.readFileSync(options.dbFile).toString());
+async function loadDB(count) {
+  const previous = data.labels.length;
+  if (!fs.existsSync(options.dbFile)) {
+    console.error("db file does not exist:", options.dbFile);
+    return;
+  }
+  t0 = process.hrtime.bigint();
+  for (let i = 0; i < count; i++) {
+    const db = JSON.parse(fs.readFileSync(options.dbFile).toString());
 
-//     const names = db.map((record) => record.customer_img_label);
-//     const descriptors = db.map(
-//       (record) =>
-//         new Float32Array(Object.values(record.customer_img_descriptions[0]))
-//     );
-//     appendRecords(names, descriptors);
-//   }
-//   console.log("db loaded:", {
-//     existingRecords: previous,
-//     newRecords: data.labels.length,
-//   });
-// }
+    const names = db.map((record) => record.customer_img_label);
+    const descriptors = db.map(
+      (record) =>
+        new Float32Array(Object.values(record.customer_img_descriptions[0]))
+    );
+    appendRecords(names, descriptors);
+  }
+  console.log("db loaded:", {
+    existingRecords: previous,
+    newRecords: data.labels.length,
+  });
+}
 
 async function loadDBFromMongo(count, res) {
   const previous = data.labels.length;
@@ -370,12 +370,14 @@ async function createBuffer() {
   });
 }
 
-module.exports = async (detectionDescriptor, req, res) => {
+module.exports = async (detectionDescriptor) => {
   await createBuffer();
-  // await loadDB(testOptions.dbFact);
-  await loadDBFromMongo(testOptions.dbFact, res);
-  await workersStart(options.threadPoolSize, res);
-  for (let i = 0; i < 1; i++) {
+  await loadDB(testOptions.dbFact);
+  // await loadDBFromMongo(testOptions.dbFact);
+  await workersStart(options.threadPoolSize);
+  for (let i = 0; i < 200; i++) {
+    data.requestID++; // increase request id
+
     match(detectionDescriptor);
     if (options.debug) console.info("submited job", data.requestID);
   }

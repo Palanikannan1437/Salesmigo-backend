@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const PORT = process.env.PORT || 8000;
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const redis = require("redis");
 
 process.on("uncaughtException", (err) => {
   console.log(`UNCAUGHT EXCEPTION! 💥 Shutting down...`);
@@ -38,6 +39,17 @@ const io = new Server(httpServer, {
   },
 });
 
+//Redis client connection
+(async () => {
+  try {
+    const client = redis.createClient({ socket: { port: 6379 } });
+    await client.connect();
+    console.log("Redis Connected");
+  } catch (err) {
+    console.error(err);
+  }
+})();
+
 app.use(require("./controllers/SocketArchitecture/Websockets")(io));
 //initializing our socket connection
 // io.on("connection", (socket) => {
@@ -49,7 +61,7 @@ app.use(require("./controllers/SocketArchitecture/Websockets")(io));
 // });
 
 httpServer.listen(PORT, () => {
-  console.log(`app running on port ${PORT}...`);
+  console.log(`App running on port ${PORT}...`);
 });
 
 //for any errors outside express

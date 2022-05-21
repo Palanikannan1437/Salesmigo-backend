@@ -6,6 +6,7 @@ exports.registerWorker = catchAsync(async (req, res, next) => {
   const newEmployee = await employeeModel.create({
     employee_name: req.body.employee_name,
     employee_email: req.body.employee_email,
+    employee_teamID: req.body.staffTeam_id,
   });
 
   await staffTeamModel.updateOne(
@@ -13,7 +14,7 @@ exports.registerWorker = catchAsync(async (req, res, next) => {
     { $addToSet: { workers: newEmployee["_id"] } }
   );
 
-  res.status(201).json({
+  return res.status(201).json({
     status: "Employee Registered",
     employee: newEmployee,
   });
@@ -31,7 +32,12 @@ exports.registerManager = catchAsync(async (req, res, next) => {
     manager: newEmployee["_id"],
   });
 
-  res.status(201).json({
+  await employeeModel.updateOne(
+    { _id: newEmployee["_id"] },
+    { employee_teamID: newStaffTeam["_id"] }
+  );
+
+  return res.status(201).json({
     status: "Employee Registered",
     employee: newEmployee,
     staffTeam: newStaffTeam["_id"],

@@ -31,8 +31,10 @@ const employeeRouter = require("./routes/employeeRoutes");
 app.use("/api/v1/employees", employeeRouter);
 
 const customerRouter = require("./routes/customerRoutes");
-
 app.use("/api/v1/customers", customerRouter);
+
+const teamRouter = require("./routes/teamRoutes");
+app.use("/api/v1/teams", teamRouter);
 
 async function LoadModels() {
   await faceapi.nets.faceRecognitionNet.loadFromDisk(__dirname + "/modelsFace");
