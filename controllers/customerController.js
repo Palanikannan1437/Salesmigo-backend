@@ -1,6 +1,7 @@
 const customerModel = require("../models/customerModel");
 const faceDetectionContoller = require("./faceDetectionControllers");
 const catchAsync = require("../utils/catchAsync");
+const axios = require("axios");
 
 exports.registerCustomer = catchAsync(async (req, res, next) => {
   const images = req.body.customer_images.map((files) => {

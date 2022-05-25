@@ -1,8 +1,8 @@
 const customerModel = require("../models/customerModel");
 
+//loading tfjs for faster performance
 require("@tensorflow/tfjs-node");
 
-// const faceapi = require("face-api.js");
 const faceapi = require("@vladmandic/face-api");
 const { Canvas, Image } = require("canvas");
 const canvas = require("canvas");
@@ -26,7 +26,7 @@ exports.uploadLabeledImages = async (images) => {
 };
 
 exports.getDescriptorsFromDB = async (detectionDescriptor, req, res) => {
-  faceMatcher(detectionDescriptor, req, res);
+  faceMatcher(detectionDescriptor, res);
 };
 
 exports.getDescriptorsFromDB1 = async (detectionDescriptor) => {

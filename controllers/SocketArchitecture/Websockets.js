@@ -1,10 +1,5 @@
 const express = require("express");
-const {
-  userJoin,
-  getCurrentUser,
-  userLeave,
-  getRoomUsers,
-} = require("./User-InterActivity");
+const socketController = require("./User-InterActivity");
 
 module.exports = function (io) {
   const router = express.Router();
@@ -13,77 +8,65 @@ module.exports = function (io) {
     console.log("User with socketId %s connected", socket.id);
     // io.disconnectSockets();
     socket.on("joinRoom", (data) => {
-      console.log(data);
+      // console.log(data);
       const username = data["name"];
       const email = data["email"];
       const room = data["teamID"];
       const type = data["type"];
-      const user = userJoin(socket.id, username, email, room, type);
+      const photoUrl = data["photoUrl"];
+      const status = "Available";
+      const user = socketController.userJoin(
+        socket.id,
+        username,
+        email,
+        room,
+        type,
+        photoUrl,
+        status
+      );
       console.log(user);
       socket.join(user.room);
+      if (user["type"] === "Worker") {
+        console.log(user.id)
+        io.to(user.id).emit(
+          "customerToWorker",
+          socketController.getCustomersAllotedToWorker(user.id)
+        );
+      }
       // Send users and room info
       io.to(user.room).emit("roomUsers", {
         room: user.room,
-        users: getRoomUsers(user.room),
+        users: socketController.getRoomUsers(user.room),
       });
 
       socket.on("customer", (data) => {
-        console.log(data);
-        socket.broadcast.to(user.room).emit("customerFound", data);
+        // console.log("first", data);
+        const customers = socketController.customerJoin(data);
+        socket.broadcast.to(user.room).emit("customerFound", customers);
       });
-      // socket.on("disconnect", () => {
-      //   console.log("disconnection successful");
-      //   const user = userLeave(socket.id);
-      //   if (user) {
-      //     // Send users and room info
-      //     io.to(user.room).emit("roomUsers", {
-      //       room: user.room,
-      //       users: getRoomUsers(user.room),
-      //     });
-      //   }
-      // });
+
+      socket.on("AllocationOfCustomer", (data) => {
+        console.log("allocation of customer", data);
+        socketController.AllocateCustomer(data);
+        socket.broadcast.to(user.room).emit("roomUsers", {
+          room: user.room,
+          users: socketController.getRoomUsers(user.room),
+        });
+        io.to(data.worker.id).emit("customerToWorker", data.customer);
+      });
     });
 
     socket.on("disconnect", () => {
-      const user = userLeave(socket.id);
+      const user = socketController.userLeave(socket.id);
       if (user) {
         // Send users and room info
         io.to(user.room).emit("roomUsers", {
           room: user.room,
-          users: getRoomUsers(user.room),
+          users: socketController.getRoomUsers(user.room),
         });
       }
       console.log("User with socketId %s disconnected", socket.id);
     });
   });
-  // io.on("connection", (socket) => {
-  //   console.log("connection successfull with socket id: %s", socket.id);
-  //   socket.on("joinRoom", (data) => {
-  //     const username = data["name"];
-  //     const email = data["email"];
-  //     const photoURL = data["photoURL"];
-  //     const room = data["teamID"];
-  //     const type = data["type"];
-  //     const user = userJoin(socket.id, username, email, photoURL, room, type);
-  //     socket.join(user.room);
-  //     // Send users and room info
-  //     io.to(user.room).emit("roomUsers", {
-  //       room: user.room,
-  //       users: getRoomUsers(user.room),
-  //     });
-
-  //     socket.on("disconnect", () => {
-  //       console.log("disconnection successful");
-  //       const user = userLeave(socket.id);
-  //       if (user) {
-  //         // Send users and room info
-  //         io.to(user.room).emit("roomUsers", {
-  //           room: user.room,
-  //           users: getRoomUsers(user.room),
-  //         });
-  //       }
-  //     });
-  //   });
-  // });
   return router;
 };

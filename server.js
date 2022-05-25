@@ -3,8 +3,8 @@ const dotenv = require("dotenv");
 const PORT = process.env.PORT || 8000;
 const { createServer } = require("http");
 const { Server } = require("socket.io");
-const redis = require("redis");
 
+//for handling any uncaught exceptions from my side
 process.on("uncaughtException", (err) => {
   console.log(`UNCAUGHT EXCEPTION! 💥 Shutting down...`);
   console.log(err.name, err.message);
@@ -32,34 +32,17 @@ mongoose
   })
   .then(console.log("DB Connection Successful"));
 
-//initializing socket instance
+//initializing socket instance and configuring cors
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://localhost:3001"],
   },
 });
 
-//Redis client connection
-(async () => {
-  try {
-    const client = redis.createClient({ socket: { port: 6379 } });
-    await client.connect();
-    console.log("Redis Connected");
-  } catch (err) {
-    console.error(err);
-  }
-})();
-
+//handling all socket requestion
 app.use(require("./controllers/SocketArchitecture/Websockets")(io));
-//initializing our socket connection
-// io.on("connection", (socket) => {
-//   console.log("User with socketId %s connected", socket.id);
-//   // io.disconnectSockets();
-//   socket.on("disconnect", () => {
-//     console.log("User with socketId %s disconnected", socket.id);
-//   });
-// });
 
+//we start listening to incoming requests
 httpServer.listen(PORT, () => {
   console.log(`App running on port ${PORT}...`);
 });

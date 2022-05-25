@@ -2,10 +2,11 @@ const path = require("path");
 const fs = require("fs");
 const threads = require("worker_threads");
 const customerModel = require("../models/customerModel");
-const cacheController = require("../controllers/Redis/cacheController");
-require("@tensorflow/tfjs-node");
+const NodeCache = require("node-cache");
+const myCache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
-// global optinos
+let finalResults;
+// global options
 const options = {
   dbFile: `${__dirname}/customers.json`, // sample face db
   dbMax: 1000000, // maximum number of records to hold in memory (takes 512mb in memory)
@@ -19,7 +20,7 @@ const options = {
 // test options
 const testOptions = {
   dbFact: 1, // load db n times to fake huge size
-  maxJobs: 200, // exit after processing this many jobs
+  maxJobs: 1, // exit after processing this many jobs
   fuzDescriptors: true, // randomize descriptor content before match for harder jobs
   sampleDescriptor: new Float32Array(
     Object.values({
@@ -193,7 +194,7 @@ const delay = (ms) =>
     setTimeout(resolve, ms);
   });
 
-async function workersClose() {
+async function workersClose(res) {
   const current = data.workers.filter((worker) => !!worker).length;
   console.info("closing workers:", {
     poolSize: data.workers.length,
@@ -213,10 +214,14 @@ async function workersClose() {
       if (worker) worker.terminate(); // if worker did not exit cleany terminate it
     }
   }
+  console.log("has exited????", finalResults);
+  res.status(200).json({
+    _label: data.labels[finalResults.index],
+    _distance: finalResults.distance,
+  });
 }
 
-const workerMessage = (index, msg) => {
-  console.log("msg.request", msg.request);
+const workerMessage = (index, msg, res) => {
   if (msg.request) {
     if (options.debug)
       console.log("message!!!!:", {
@@ -227,6 +232,7 @@ const workerMessage = (index, msg) => {
         similarity: msg.similarity,
       });
     else {
+      finalResults = msg;
       console.log("mess: ", msg);
     }
     if (msg.request >= testOptions.maxJobs) {
@@ -237,7 +243,7 @@ const workerMessage = (index, msg) => {
         totalTimeMs: elapsed,
         averageTimeMs: Math.round((100 * elapsed) / testOptions.maxJobs) / 100,
       });
-      workersClose();
+      workersClose(res);
     }
   } else {
     const t1 = process.hrtime.bigint();
@@ -268,7 +274,7 @@ async function workerClose(id, code) {
     console.log("worker exit:", { id, code, previous, current });
 }
 
-async function workersStart(numWorkers) {
+async function workersStart(numWorkers, res) {
   const previous = data.workers.filter((worker) => !!worker).length;
   console.info("starting worker thread pool:", {
     totalWorkers: numWorkers,
@@ -279,7 +285,7 @@ async function workersStart(numWorkers) {
       const worker = new threads.Worker(
         path.join(__dirname, options.workerSrc)
       );
-      worker.on("message", (msg) => workerMessage(i, msg));
+      worker.on("message", (msg) => workerMessage(i, msg, res));
       worker.on("error", (err) => console.error("worker error:", { err }));
       worker.on("exit", (code) => workerClose(i, code));
       worker.postMessage(data.buffer); // send buffer to worker
@@ -335,10 +341,22 @@ async function loadDBFromMongo(count, res) {
 
   t0 = process.hrtime.bigint();
   for (let i = 0; i < count; i++) {
-    const db = await customerModel.find(
+    let db = await customerModel.find(
       {},
       { customer_img_label: 1, customer_img_descriptions: 1 }
     );
+    // const faceDescriptorsFromDB = myCache.get("faces");
+    // if (faceDescriptorsFromDB == undefined) {
+    //   console.log("cache miss");
+    //   db = await customerModel.find(
+    //     {},
+    //     { customer_img_label: 1, customer_img_descriptions: 1 }
+    //   );
+    //   myCache.set("faces", db, 100000);
+    // } else {
+    //   console.log("cache hit");
+    //   db = faceDescriptorsFromDB;
+    // }
 
     let db_expanded = [];
     let names = [];
@@ -353,6 +371,7 @@ async function loadDBFromMongo(count, res) {
     }
     appendRecords(names, db_expanded);
   }
+  console.log("wut");
   console.log("db loaded:", {
     existingRecords: previous,
     newRecords: data.labels.length,
@@ -370,20 +389,24 @@ async function createBuffer() {
   });
 }
 
-module.exports = async (detectionDescriptor) => {
+module.exports = async (detectionDescriptor, res) => {
   await createBuffer();
-  await loadDB(testOptions.dbFact);
-  // await loadDBFromMongo(testOptions.dbFact);
-  await workersStart(options.threadPoolSize);
-  for (let i = 0; i < 200; i++) {
-    data.requestID++; // increase request id
+  // await loadDB(testOptions.dbFact);
+  await loadDBFromMongo(testOptions.dbFact);
+  await workersStart(options.threadPoolSize, res);
+  // for (let i = 0; i < testOptions.maxJobs; i++) {
+  //   data.requestID++; // increase request id
 
-    match(detectionDescriptor);
-    if (options.debug) console.info("submited job", data.requestID);
-  }
+  //   match(detectionDescriptor);
+  //   if (options.debug) console.info("submited job", data.requestID);
+  // }
+  data.requestID++;
+  match(detectionDescriptor);
+
   console.log("submitted:", {
     matchJobs: testOptions.maxJobs,
     poolSize: data.workers.length,
     activeWorkers: data.workers.filter((worker) => !!worker).length,
   });
+  console.log(finalResults);
 };
