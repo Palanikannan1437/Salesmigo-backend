@@ -13,19 +13,25 @@ const registrationApiLimiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 });
 
-customerRouter.route("/customer").post(
+customerRouter.route("/").post(
   // authController.protect,
   // authController.restrictTo("Manager", "Worker"),
   registrationApiLimiter,
   customerController.registerCustomer
 );
-customerRouter.route("/customer/find").post(
+customerRouter.route("/find").post(
   // authController.protect,
   // authController.restrictTo("Manager", "Worker"),
   customerController.findCustomer
 );
 
-customerRouter.route("/customer/find1").post(
+customerRouter.route("/emotion").post(
+  // authController.protect,
+  // authController.restrictTo("Manager", "Worker"),
+  customerController.addCustomerEmotion
+);
+
+customerRouter.route("/find1").post(
   // authController.protect,
   // authController.restrictTo("Manager", "Worker"),
   customerController.findCustomer1

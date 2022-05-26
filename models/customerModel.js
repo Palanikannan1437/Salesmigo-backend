@@ -30,6 +30,10 @@ const CustomerSchema = mongoose.Schema({
     type: Array,
     required: true,
   },
+
+  customer_emotions: {
+    type: Array,
+  },
 });
 
 const Customer = mongoose.model("Customer", CustomerSchema);

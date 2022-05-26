@@ -16,6 +16,7 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+//limiting excess api calls from single IP to prevent ddos attacks
 app.use(
   limiter({
     windowMs: 1 * 60 * 1000, //750 per min requests allowed from one IP address
@@ -53,6 +54,8 @@ app.use("/api/v1/customers", customerRouter);
 const teamRouter = require("./routes/teamRoutes");
 app.use("/api/v1/teams", teamRouter);
 
+const aisleRouter = require("./routes/aisleRoutes");
+app.use("/api/v1/aisles", aisleRouter);
 
 async function LoadModels() {
   await faceapi.nets.faceRecognitionNet.loadFromDisk(__dirname + "/modelsFace");
