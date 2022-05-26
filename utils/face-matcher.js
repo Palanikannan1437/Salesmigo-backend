@@ -9,11 +9,11 @@ let finalResults;
 // global options
 const options = {
   dbFile: `${__dirname}/customers.json`, // sample face db
-  dbMax: 1000000, // maximum number of records to hold in memory (takes 512mb in memory)
+  dbMax: 100000, // maximum number of records to hold in memory (takes 512mb in memory)
   threadPoolSize: 12, // number of worker threads to create in thread pool
   workerSrc: "./face-matcher-worker.js", // code that executes in the worker thread
   debug: false, // verbose messages
-  minThreshold: 0.5, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
+  minThreshold: 0, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
   descLength: 128, // descriptor length
 };
 
@@ -156,17 +156,17 @@ const testOptions = {
   ),
 };
 
-const data = {
-  labels: [],
-  buffer: null,
-  view: null,
-  workers: [],
-  requestID: 0,
-};
+// const data = {
+//   labels: [],
+//   buffer: null,
+//   view: null,
+//   workers: [],
+//   requestID: 0,
+// };
 
 let t0 = process.hrtime.bigint(); // used for perf counters
 
-const appendRecords = (labels, descriptors) => {
+const appendRecords = (labels, descriptors, data) => {
   if (!data.view) return 0;
   if (descriptors.length !== labels.length) {
     console.error("append error:", {
@@ -194,7 +194,7 @@ const delay = (ms) =>
     setTimeout(resolve, ms);
   });
 
-async function workersClose(res) {
+async function workersClose(res, data) {
   const current = data.workers.filter((worker) => !!worker).length;
   console.info("closing workers:", {
     poolSize: data.workers.length,
@@ -221,7 +221,7 @@ async function workersClose(res) {
   });
 }
 
-const workerMessage = (index, msg, res) => {
+const workerMessage = (index, msg, res, data) => {
   if (msg.request) {
     if (options.debug)
       console.log("message!!!!:", {
@@ -243,7 +243,7 @@ const workerMessage = (index, msg, res) => {
         totalTimeMs: elapsed,
         averageTimeMs: Math.round((100 * elapsed) / testOptions.maxJobs) / 100,
       });
-      workersClose(res);
+      workersClose(res, data);
     }
   } else {
     const t1 = process.hrtime.bigint();
@@ -266,7 +266,7 @@ const workerMessage = (index, msg, res) => {
   }
 };
 
-async function workerClose(id, code) {
+async function workerClose(id, code, data) {
   const previous = data.workers.filter((worker) => !!worker).length;
   delete data.workers[id];
   const current = data.workers.filter((worker) => !!worker).length;
@@ -274,7 +274,7 @@ async function workerClose(id, code) {
     console.log("worker exit:", { id, code, previous, current });
 }
 
-async function workersStart(numWorkers, res) {
+async function workersStart(numWorkers, res, data) {
   const previous = data.workers.filter((worker) => !!worker).length;
   console.info("starting worker thread pool:", {
     totalWorkers: numWorkers,
@@ -285,9 +285,9 @@ async function workersStart(numWorkers, res) {
       const worker = new threads.Worker(
         path.join(__dirname, options.workerSrc)
       );
-      worker.on("message", (msg) => workerMessage(i, msg, res));
+      worker.on("message", (msg) => workerMessage(i, msg, res, data));
       worker.on("error", (err) => console.error("worker error:", { err }));
-      worker.on("exit", (code) => workerClose(i, code));
+      worker.on("exit", (code) => workerClose(i, code, data));
       worker.postMessage(data.buffer); // send buffer to worker
       data.workers[i] = worker;
     }
@@ -300,7 +300,7 @@ async function workersStart(numWorkers, res) {
   await delay(100);
 }
 
-const match = (descriptor) => {
+const match = async (descriptor, data) => {
   const buffer = new ArrayBuffer(options.descLength * 4);
   const view = new Float32Array(buffer);
   view.set(descriptor);
@@ -313,7 +313,7 @@ const match = (descriptor) => {
   } else console.error("no available workers");
 };
 
-async function loadDB(count) {
+async function loadDB(count, data) {
   const previous = data.labels.length;
   if (!fs.existsSync(options.dbFile)) {
     console.error("db file does not exist:", options.dbFile);
@@ -328,7 +328,7 @@ async function loadDB(count) {
       (record) =>
         new Float32Array(Object.values(record.customer_img_descriptions[0]))
     );
-    appendRecords(names, descriptors);
+    appendRecords(names, descriptors, data);
   }
   console.log("db loaded:", {
     existingRecords: previous,
@@ -336,7 +336,7 @@ async function loadDB(count) {
   });
 }
 
-async function loadDBFromMongo(count, res) {
+async function loadDBFromMongo(count, res, data) {
   const previous = data.labels.length;
 
   t0 = process.hrtime.bigint();
@@ -369,7 +369,7 @@ async function loadDBFromMongo(count, res) {
         names.push(db[i].customer_img_label);
       }
     }
-    appendRecords(names, db_expanded);
+    appendRecords(names, db_expanded, data);
   }
   console.log("wut");
   console.log("db loaded:", {
@@ -378,7 +378,7 @@ async function loadDBFromMongo(count, res) {
   });
 }
 
-async function createBuffer() {
+async function createBuffer(data) {
   data.buffer = new SharedArrayBuffer(4 * options.dbMax * options.descLength);
   data.view = new Float32Array(data.buffer);
   data.labels.length = 0;
@@ -390,18 +390,29 @@ async function createBuffer() {
 }
 
 module.exports = async (detectionDescriptor, res) => {
-  await createBuffer();
-  // await loadDB(testOptions.dbFact);
-  await loadDBFromMongo(testOptions.dbFact);
-  await workersStart(options.threadPoolSize, res);
+  const data = {
+    labels: [],
+    buffer: null,
+    view: null,
+    workers: [],
+    requestID: 0,
+  };
+  await createBuffer(data);
+
+  // await loadDB(testOptions.dbFact, data);
+  await loadDBFromMongo(testOptions.dbFact, res, data);
+  await workersStart(options.threadPoolSize, res, data);
   // for (let i = 0; i < testOptions.maxJobs; i++) {
   //   data.requestID++; // increase request id
-
-  //   match(detectionDescriptor);
+  //   console.log(data.requestID);
+  //   match(detectionDescriptor, data);
   //   if (options.debug) console.info("submited job", data.requestID);
   // }
-  data.requestID++;
-  match(detectionDescriptor);
+  data.requestID++; // increase request id
+  match(detectionDescriptor,data);
+
+  // data.requestID++;
+  // match(detectionDescriptor);
 
   console.log("submitted:", {
     matchJobs: testOptions.maxJobs,
