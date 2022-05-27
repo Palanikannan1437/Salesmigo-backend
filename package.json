@@ -22,6 +22,7 @@
   "dependencies": {
     "@socket.io/cluster-adapter": "^0.2.0",
     "@socket.io/sticky": "^1.0.1",
+    "@tensorflow/tfjs-core": "^3.18.0",
     "@tensorflow/tfjs-node": "^3.17.0",
     "@vladmandic/face-api": "^1.6.8",
     "axios": "^0.27.2",
