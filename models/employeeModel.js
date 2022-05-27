@@ -25,6 +25,10 @@ const EmployeeSchema = mongoose.Schema({
     enum: ["Manager", "Worker"],
     default: "Worker",
   },
+  employee_teamID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "StaffTeams",
+  },
 });
 
 const Employee = mongoose.model("Employee", EmployeeSchema);

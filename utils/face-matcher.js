@@ -2,21 +2,24 @@ const path = require("path");
 const fs = require("fs");
 const threads = require("worker_threads");
 const customerModel = require("../models/customerModel");
+const NodeCache = require("node-cache");
+const myCache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
-// global optinos
+let finalResults;
+// global options
 const options = {
   dbFile: `${__dirname}/customers.json`, // sample face db
-  dbMax: 1000000, // maximum number of records to hold in memory (takes 512mb in memory)
+  dbMax: 100000, // maximum number of records to hold in memory (takes 512mb in memory)
   threadPoolSize: 12, // number of worker threads to create in thread pool
   workerSrc: "./face-matcher-worker.js", // code that executes in the worker thread
   debug: false, // verbose messages
-  minThreshold: 0.4, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
+  minThreshold: 0, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
   descLength: 128, // descriptor length
 };
 
 // test options
 const testOptions = {
-  dbFact: 100000, // load db n times to fake huge size
+  dbFact: 1, // load db n times to fake huge size
   maxJobs: 1, // exit after processing this many jobs
   fuzDescriptors: true, // randomize descriptor content before match for harder jobs
   sampleDescriptor: new Float32Array(
@@ -153,17 +156,17 @@ const testOptions = {
   ),
 };
 
-const data = {
-  labels: [],
-  buffer: null,
-  view: null,
-  workers: [],
-  requestID: 0,
-};
+// const data = {
+//   labels: [],
+//   buffer: null,
+//   view: null,
+//   workers: [],
+//   requestID: 0,
+// };
 
 let t0 = process.hrtime.bigint(); // used for perf counters
 
-const appendRecords = (labels, descriptors) => {
+const appendRecords = (labels, descriptors, data) => {
   if (!data.view) return 0;
   if (descriptors.length !== labels.length) {
     console.error("append error:", {
@@ -191,7 +194,7 @@ const delay = (ms) =>
     setTimeout(resolve, ms);
   });
 
-async function workersClose() {
+async function workersClose(res, data) {
   const current = data.workers.filter((worker) => !!worker).length;
   console.info("closing workers:", {
     poolSize: data.workers.length,
@@ -211,9 +214,14 @@ async function workersClose() {
       if (worker) worker.terminate(); // if worker did not exit cleany terminate it
     }
   }
+  console.log("has exited????", finalResults);
+  res.status(200).json({
+    _label: data.labels[finalResults.index],
+    _distance: finalResults.distance,
+  });
 }
 
-const workerMessage = (index, msg, res) => {
+const workerMessage = (index, msg, res, data) => {
   if (msg.request) {
     if (options.debug)
       console.log("message!!!!:", {
@@ -224,6 +232,7 @@ const workerMessage = (index, msg, res) => {
         similarity: msg.similarity,
       });
     else {
+      finalResults = msg;
       console.log("mess: ", msg);
     }
     if (msg.request >= testOptions.maxJobs) {
@@ -234,7 +243,7 @@ const workerMessage = (index, msg, res) => {
         totalTimeMs: elapsed,
         averageTimeMs: Math.round((100 * elapsed) / testOptions.maxJobs) / 100,
       });
-      workersClose();
+      workersClose(res, data);
     }
   } else {
     const t1 = process.hrtime.bigint();
@@ -250,17 +259,14 @@ const workerMessage = (index, msg, res) => {
       label: data.labels[msg.index],
     });
     workersClose();
-    res.status(201).json({
-      status: "Customer Found!",
-      customer: {
-        _label: data.labels[msg.index],
-        _distance: msg.distance,
-      },
-    });
+    return {
+      _label: data.labels[msg.index],
+      _distance: msg.distance,
+    };
   }
 };
 
-async function workerClose(id, code) {
+async function workerClose(id, code, data) {
   const previous = data.workers.filter((worker) => !!worker).length;
   delete data.workers[id];
   const current = data.workers.filter((worker) => !!worker).length;
@@ -268,7 +274,7 @@ async function workerClose(id, code) {
     console.log("worker exit:", { id, code, previous, current });
 }
 
-async function workersStart(numWorkers, res) {
+async function workersStart(numWorkers, res, data) {
   const previous = data.workers.filter((worker) => !!worker).length;
   console.info("starting worker thread pool:", {
     totalWorkers: numWorkers,
@@ -279,9 +285,9 @@ async function workersStart(numWorkers, res) {
       const worker = new threads.Worker(
         path.join(__dirname, options.workerSrc)
       );
-      worker.on("message", (msg) => workerMessage(i, msg, res));
+      worker.on("message", (msg) => workerMessage(i, msg, res, data));
       worker.on("error", (err) => console.error("worker error:", { err }));
-      worker.on("exit", (code) => workerClose(i, code));
+      worker.on("exit", (code) => workerClose(i, code, data));
       worker.postMessage(data.buffer); // send buffer to worker
       data.workers[i] = worker;
     }
@@ -294,7 +300,7 @@ async function workersStart(numWorkers, res) {
   await delay(100);
 }
 
-const match = (descriptor) => {
+const match = async (descriptor, data) => {
   const buffer = new ArrayBuffer(options.descLength * 4);
   const view = new Float32Array(buffer);
   view.set(descriptor);
@@ -307,38 +313,50 @@ const match = (descriptor) => {
   } else console.error("no available workers");
 };
 
-// async function loadDB(count) {
-//   const previous = data.labels.length;
-//   if (!fs.existsSync(options.dbFile)) {
-//     console.error("db file does not exist:", options.dbFile);
-//     return;
-//   }
-//   t0 = process.hrtime.bigint();
-//   for (let i = 0; i < count; i++) {
-//     const db = JSON.parse(fs.readFileSync(options.dbFile).toString());
+async function loadDB(count, data) {
+  const previous = data.labels.length;
+  if (!fs.existsSync(options.dbFile)) {
+    console.error("db file does not exist:", options.dbFile);
+    return;
+  }
+  t0 = process.hrtime.bigint();
+  for (let i = 0; i < count; i++) {
+    const db = JSON.parse(fs.readFileSync(options.dbFile).toString());
 
-//     const names = db.map((record) => record.customer_img_label);
-//     const descriptors = db.map(
-//       (record) =>
-//         new Float32Array(Object.values(record.customer_img_descriptions[0]))
-//     );
-//     appendRecords(names, descriptors);
-//   }
-//   console.log("db loaded:", {
-//     existingRecords: previous,
-//     newRecords: data.labels.length,
-//   });
-// }
+    const names = db.map((record) => record.customer_img_label);
+    const descriptors = db.map(
+      (record) =>
+        new Float32Array(Object.values(record.customer_img_descriptions[0]))
+    );
+    appendRecords(names, descriptors, data);
+  }
+  console.log("db loaded:", {
+    existingRecords: previous,
+    newRecords: data.labels.length,
+  });
+}
 
-async function loadDBFromMongo(count, res) {
+async function loadDBFromMongo(count, res, data) {
   const previous = data.labels.length;
 
   t0 = process.hrtime.bigint();
   for (let i = 0; i < count; i++) {
-    const db = await customerModel.find(
+    let db = await customerModel.find(
       {},
       { customer_img_label: 1, customer_img_descriptions: 1 }
     );
+    // const faceDescriptorsFromDB = myCache.get("faces");
+    // if (faceDescriptorsFromDB == undefined) {
+    //   console.log("cache miss");
+    //   db = await customerModel.find(
+    //     {},
+    //     { customer_img_label: 1, customer_img_descriptions: 1 }
+    //   );
+    //   myCache.set("faces", db, 100000);
+    // } else {
+    //   console.log("cache hit");
+    //   db = faceDescriptorsFromDB;
+    // }
 
     let db_expanded = [];
     let names = [];
@@ -351,15 +369,16 @@ async function loadDBFromMongo(count, res) {
         names.push(db[i].customer_img_label);
       }
     }
-    appendRecords(names, db_expanded);
+    appendRecords(names, db_expanded, data);
   }
+  console.log("wut");
   console.log("db loaded:", {
     existingRecords: previous,
     newRecords: data.labels.length,
   });
 }
 
-async function createBuffer() {
+async function createBuffer(data) {
   data.buffer = new SharedArrayBuffer(4 * options.dbMax * options.descLength);
   data.view = new Float32Array(data.buffer);
   data.labels.length = 0;
@@ -370,18 +389,35 @@ async function createBuffer() {
   });
 }
 
-module.exports = async (detectionDescriptor, req, res) => {
-  await createBuffer();
-  // await loadDB(testOptions.dbFact);
-  await loadDBFromMongo(testOptions.dbFact, res);
-  await workersStart(options.threadPoolSize, res);
-  for (let i = 0; i < 1; i++) {
-    match(detectionDescriptor);
-    if (options.debug) console.info("submited job", data.requestID);
-  }
+module.exports = async (detectionDescriptor, res) => {
+  const data = {
+    labels: [],
+    buffer: null,
+    view: null,
+    workers: [],
+    requestID: 0,
+  };
+  await createBuffer(data);
+
+  // await loadDB(testOptions.dbFact, data);
+  await loadDBFromMongo(testOptions.dbFact, res, data);
+  await workersStart(options.threadPoolSize, res, data);
+  // for (let i = 0; i < testOptions.maxJobs; i++) {
+  //   data.requestID++; // increase request id
+  //   console.log(data.requestID);
+  //   match(detectionDescriptor, data);
+  //   if (options.debug) console.info("submited job", data.requestID);
+  // }
+  data.requestID++; // increase request id
+  match(detectionDescriptor,data);
+
+  // data.requestID++;
+  // match(detectionDescriptor);
+
   console.log("submitted:", {
     matchJobs: testOptions.maxJobs,
     poolSize: data.workers.length,
     activeWorkers: data.workers.filter((worker) => !!worker).length,
   });
+  console.log(finalResults);
 };

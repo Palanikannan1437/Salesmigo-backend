@@ -5,7 +5,7 @@ let debug = false;
 
 let buffer;
 let view;
-let threshold = 0.4;
+let threshold = 0.5;
 let records = 0;
 
 const descLength = 128; // descriptor length in bytes
@@ -22,15 +22,13 @@ function distance(descBuffer, index) {
 function match(descBuffer) {
   let best = Number.MAX_SAFE_INTEGER;
   let index = -1;
-  console.log("RECORDS!!", records);
   for (let i = 0; i < records; i++) {
     const res = distance(descBuffer, i);
     if (res < best) {
       best = res;
       index = i;
     }
-    console.log(res, threshold, "resultttt", i);
-    if (best === 0) break; // short circuit
+    if (best < threshold || best === 0) break; // short circuit
   }
   return {
     index,
