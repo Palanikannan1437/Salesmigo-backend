@@ -15,7 +15,6 @@ exports.userJoin = (id, username, email, room, type, photoUrl, status) => {
   };
   //for limiting the number of socket connections each user can make
   // users = users.filter(oneUser=>oneUser.email !== email)
-
   users.push(user);
   return user;
 };

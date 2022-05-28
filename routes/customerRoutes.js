@@ -2,7 +2,6 @@ const express = require("express");
 const customerRouter = express.Router();
 
 const customerController = require("../controllers/customerController");
-const authController = require("../controllers/authController");
 const rateLimit = require("express-rate-limit");
 
 // since registering each user is a super cpu intensive task(tfjs!),performing some rate
@@ -13,28 +12,14 @@ const registrationApiLimiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 });
 
-customerRouter.route("/").post(
-  // authController.protect,
-  // authController.restrictTo("Manager", "Worker"),
-  registrationApiLimiter,
-  customerController.registerCustomer
-);
-customerRouter.route("/find").post(
-  // authController.protect,
-  // authController.restrictTo("Manager", "Worker"),
-  customerController.findCustomer
-);
+customerRouter
+  .route("/")
+  .post(registrationApiLimiter, customerController.registerCustomer);
 
-customerRouter.route("/emotion").post(
-  // authController.protect,
-  // authController.restrictTo("Manager", "Worker"),
-  customerController.addCustomerEmotion
-);
+customerRouter.route("/find").post(customerController.findCustomer);
 
-customerRouter.route("/find1").post(
-  // authController.protect,
-  // authController.restrictTo("Manager", "Worker"),
-  customerController.findCustomer1
-);
+customerRouter.route("/emotion").post(customerController.addCustomerEmotion);
+
+customerRouter.route("/find1").post(customerController.findCustomer1);
 
 module.exports = customerRouter;

@@ -20,6 +20,7 @@ exports.registerCustomer = catchAsync(async (req, res, next) => {
     customer_dateOfBirth: req.body.customer_dateOfBirth,
     customer_images: req.body.customer_images,
     customer_img_descriptions: result,
+    customer_gender: req.body.customer_gender,
     customer_img_label: req.body.customer_name + "_" + req.body.customer_email,
   });
   return res.status(201).json({
