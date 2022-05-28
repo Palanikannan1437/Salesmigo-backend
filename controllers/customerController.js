@@ -1,6 +1,7 @@
 const customerModel = require("../models/customerModel");
 const faceDetectionContoller = require("./faceDetectionControllers");
 const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
 exports.registerCustomer = catchAsync(async (req, res, next) => {
   const images = req.body.customer_images.map((files) => {
@@ -79,7 +80,45 @@ exports.addCustomerEmotion = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.findCustomer1 = catchAsync(async (req, res, next) => {
+exports.addCustomerGesture = catchAsync(async (req, res, next) => {
+  const { current_gesture, customer_email, aisleName } = req.body;
+
+  const conditions = {
+    customer_email: customer_email,
+    "customer_gestures.aisleName": { $ne: aisleName },
+  };
+
+  const update = {
+    $addToSet: {
+      customer_gestures: { emotion: current_gesture, aisleName: aisleName },
+    },
+  };
+
+  customerModel.findOneAndUpdate(conditions, update, function (err, doc) {
+    if (doc === null) {
+      customerModel.updateOne(
+        { "customer_gestures.aisleName": aisleName },
+        {
+          $set: {
+            "customer_gestures.$.emotion": current_gesture,
+          },
+        },
+        function (err) {
+          return new AppError(`Error in Adding gesture: ${err}`, 404);
+        }
+      );
+      return res.status(200).json({
+        status: "Gesture modified successfully",
+      });
+    } else {
+      res.status(200).json({
+        status: "Gesture added successfully!",
+      });
+    }
+  });
+});
+
+exports.findCustomerOldInefficient = catchAsync(async (req, res, next) => {
   let result = await faceDetectionContoller.getDescriptorsFromDB1(
     req.body.descriptor
   );

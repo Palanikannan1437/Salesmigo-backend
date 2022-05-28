@@ -7,6 +7,7 @@ exports.createAisle = catchAsync(async (req, res, next) => {
     fashionItem: req.body.fashionItem,
     priceRange: req.body.priceRange,
   });
+  
   return res.status(201).json({
     status: `Aisle: ${newAisle.aisleName} Created`,
   });

@@ -35,8 +35,11 @@ const CustomerSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  
+
   customer_emotions: {
+    type: Array,
+  },
+  customer_gestures: {
     type: Array,
   },
 });

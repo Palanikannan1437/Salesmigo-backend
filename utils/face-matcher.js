@@ -2,10 +2,13 @@ const path = require("path");
 const fs = require("fs");
 const threads = require("worker_threads");
 const customerModel = require("../models/customerModel");
+
+//trying caching to avoid loading data from db
 const NodeCache = require("node-cache");
 const myCache = new NodeCache({ stdTTL: 100, checkperiod: 120 });
 
 let finalResults;
+
 // global options
 const options = {
   dbFile: `${__dirname}/customers.json`, // sample face db
@@ -156,14 +159,6 @@ const testOptions = {
   ),
 };
 
-// const data = {
-//   labels: [],
-//   buffer: null,
-//   view: null,
-//   workers: [],
-//   requestID: 0,
-// };
-
 let t0 = process.hrtime.bigint(); // used for perf counters
 
 const appendRecords = (labels, descriptors, data) => {
@@ -214,7 +209,6 @@ async function workersClose(res, data) {
       if (worker) worker.terminate(); // if worker did not exit cleany terminate it
     }
   }
-  console.log("has exited????", finalResults);
   res.status(200).json({
     _label: data.labels[finalResults.index],
     _distance: finalResults.distance,
@@ -224,7 +218,7 @@ async function workersClose(res, data) {
 const workerMessage = (index, msg, res, data) => {
   if (msg.request) {
     if (options.debug)
-      console.log("message!!!!:", {
+      console.log("message: ", {
         worker: index,
         request: msg.request,
         time: msg.time,
@@ -233,7 +227,7 @@ const workerMessage = (index, msg, res, data) => {
       });
     else {
       finalResults = msg;
-      console.log("mess: ", msg);
+      console.log("messsage: ", msg);
     }
     if (msg.request >= testOptions.maxJobs) {
       const t1 = process.hrtime.bigint();
@@ -253,7 +247,7 @@ const workerMessage = (index, msg, res, data) => {
       totalTimeMs: elapsed,
       averageTimeMs: Math.round((100 * elapsed) / testOptions.maxJobs) / 100,
     });
-    console.log("message!!!!:", {
+    console.log("message: ", {
       worker: index,
       msg,
       label: data.labels[msg.index],
@@ -345,6 +339,8 @@ async function loadDBFromMongo(count, res, data) {
       {},
       { customer_img_label: 1, customer_img_descriptions: 1 }
     );
+
+    //caching data from db!
     // const faceDescriptorsFromDB = myCache.get("faces");
     // if (faceDescriptorsFromDB == undefined) {
     //   console.log("cache miss");
@@ -371,7 +367,6 @@ async function loadDBFromMongo(count, res, data) {
     }
     appendRecords(names, db_expanded, data);
   }
-  console.log("wut");
   console.log("db loaded:", {
     existingRecords: previous,
     newRecords: data.labels.length,
@@ -401,18 +396,14 @@ module.exports = async (detectionDescriptor, res) => {
 
   // await loadDB(testOptions.dbFact, data);
   await loadDBFromMongo(testOptions.dbFact, res, data);
-  await workersStart(options.threadPoolSize, res, data);
-  // for (let i = 0; i < testOptions.maxJobs; i++) {
-  //   data.requestID++; // increase request id
-  //   console.log(data.requestID);
-  //   match(detectionDescriptor, data);
-  //   if (options.debug) console.info("submited job", data.requestID);
-  // }
-  data.requestID++; // increase request id
-  match(detectionDescriptor,data);
 
-  // data.requestID++;
-  // match(detectionDescriptor);
+  await workersStart(options.threadPoolSize, res, data);
+  for (let i = 0; i < testOptions.maxJobs; i++) {
+    data.requestID++; // increase request id
+    console.log(data.requestID);
+    match(detectionDescriptor, data);
+    if (options.debug) console.info("submited job", data.requestID);
+  }
 
   console.log("submitted:", {
     matchJobs: testOptions.maxJobs,

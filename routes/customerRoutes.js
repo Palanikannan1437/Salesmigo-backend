@@ -19,7 +19,8 @@ customerRouter
 customerRouter.route("/find").post(customerController.findCustomer);
 
 customerRouter.route("/emotion").post(customerController.addCustomerEmotion);
+customerRouter.route("/gesture").post(customerController.addCustomerGesture);
 
-customerRouter.route("/find1").post(customerController.findCustomer1);
+customerRouter.route("/findOldInefficient").post(customerController.findCustomerOldInefficient);
 
 module.exports = customerRouter;
