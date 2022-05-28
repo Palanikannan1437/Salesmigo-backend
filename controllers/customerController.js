@@ -90,7 +90,7 @@ exports.addCustomerGesture = catchAsync(async (req, res, next) => {
 
   const update = {
     $addToSet: {
-      customer_gestures: { emotion: current_gesture, aisleName: aisleName },
+      customer_gestures: { gesture: current_gesture, aisleName: aisleName },
     },
   };
 
@@ -100,7 +100,7 @@ exports.addCustomerGesture = catchAsync(async (req, res, next) => {
         { "customer_gestures.aisleName": aisleName },
         {
           $set: {
-            "customer_gestures.$.emotion": current_gesture,
+            "customer_gestures.$.gesture": current_gesture,
           },
         },
         function (err) {

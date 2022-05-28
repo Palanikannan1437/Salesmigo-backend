@@ -1,6 +1,7 @@
 const recombee = require("recombee-api-client");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
+const CustomerModel = require("../models/customerModel");
 
 //inorder to reduce data redundancy, I've stored all inventory data in rocombee's database
 const rqs = recombee.requests;
@@ -125,7 +126,27 @@ exports.AddPurchase = catchAsync(async (req, res, next) => {
   });
 });
 
-//getting recommended items for a particular user
+//get purchases by a user
+exports.GetUserPurchases = catchAsync(async (req, res, next) => {
+  const emailId = req.params.userId;
+  const userPurchases = new rqs.ListUserPurchases(emailId);
+  userPurchases.timeout = 5000;
+
+  client.send(userPurchases, (err, purchases) => {
+    if (err !== null || purchases.length === 0) {
+      console.log(err);
+      return next(new AppError(`No purchase of the user found`, 404));
+    }
+    if (purchases.length > 0) {
+      res.status(200).json({
+        status: "Success",
+        purchases,
+      });
+    }
+  });
+});
+
+//getting recommended items for a particular user based on previous purchases and general trends
 exports.RecommendItems = catchAsync(async (req, res, next) => {
   const { emailId, scenario } = req.body;
 
@@ -151,22 +172,64 @@ exports.RecommendItems = catchAsync(async (req, res, next) => {
   });
 });
 
-//get purchases by a user
-exports.GetUserPurchases = catchAsync(async (req, res, next) => {
-  const emailId = req.params.userId;
-  const userPurchases = new rqs.ListUserPurchases(emailId);
-  userPurchases.timeout = 5000;
+//getting recoomended items for a particular user based on their
+//expressions and emotions from various aisles of the stores
+exports.RecommendItemsBasedOnEmotion = catchAsync(async (req, res, next) => {
+  const { emailId } = req.body;
 
-  client.send(userPurchases, (err, purchases) => {
-    if (err !== null || purchases.length === 0) {
-      console.log(err);
-      return next(new AppError(`No purchase of the user found`, 404));
+  const customer_emotions = await CustomerModel.find(
+    { customer_email: emailId },
+    { customer_emotions: 1 }
+  );
+
+  console.log(customer_emotions);
+  const happy_aisles = customer_emotions[0].customer_emotions.filter(
+    (emotion) => {
+      return emotion.emotion === "happy";
     }
-    if (purchases.length > 0) {
-      res.status(200).json({
-        status: "Success",
-        purchases,
-      });
-    }
+  );
+
+  const neutral_aisles = customer_emotions[0].customer_emotions.filter(
+    (emotion) => emotion.emotion === "neutral"
+  );
+
+  const recommendation = [...happy_aisles, ...neutral_aisles];
+
+  res.status(200).json({
+    status: "success",
+    recommendation,
   });
+});
+
+exports.RecommendItemsBasedOnGestures = catchAsync(async (req, res, next) => {
+  const { emailId } = req.body;
+
+  const customer_gestures = await CustomerModel.find(
+    { customer_email: emailId },
+    { customer_gestures: 1 }
+  );
+  console.log(emailId);
+  if (customer_gestures.length > 0) {
+    const thumbs_up_aisles = customer_gestures[0].customer_gestures.filter(
+      (gesture) => {
+        return gesture.gesture === "thumbs-up";
+      }
+    );
+
+    const victory_aisles = customer_gestures[0].customer_gestures.filter(
+      (gesture) => {
+        return gesture.gesture === "victory";
+      }
+    );
+    const recommendation = [...thumbs_up_aisles, ...victory_aisles];
+
+    return res.status(200).json({
+      status: "success",
+      recommendation,
+    });
+  } else {
+    res.status(404).json({
+      status: "fail",
+    });
+  }
 });

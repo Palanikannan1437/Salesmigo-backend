@@ -20,12 +20,23 @@ aisleRouter
 //when user makes a purchase
 aisleRouter.route("/purchase").post(recommendationController.AddPurchase);
 
+//getting previous purchases of a user
+aisleRouter
+  .route("/purchases/:userId")
+  .get(recommendationController.GetUserPurchases);
+
 //recommending items to a user based on previous purchases
 aisleRouter
   .route("/recommendations")
   .post(recommendationController.RecommendItems);
 
+//recommending items to a user based on previous purchases
 aisleRouter
-  .route("/purchase/:userId")
-  .get(recommendationController.GetUserPurchases);
+  .route("/recommendations-emotions")
+  .post(recommendationController.RecommendItemsBasedOnEmotion);
+
+aisleRouter
+  .route("/recommendations-gestures")
+  .post(recommendationController.RecommendItemsBasedOnGestures);
+
 module.exports = aisleRouter;
