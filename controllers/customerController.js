@@ -21,9 +21,9 @@ exports.registerCustomer = catchAsync(async (req, res, next) => {
     customer_dateOfBirth: req.body.customer_dateOfBirth,
     customer_images: req.body.customer_images,
     customer_img_descriptions: result,
-    customer_gender: req.body.customer_gender,
     customer_img_label: req.body.customer_name + "_" + req.body.customer_email,
   });
+
   return res.status(201).json({
     status: `Customer ${newCustomer.customer_name} Registered`,
   });
@@ -39,7 +39,7 @@ exports.findCustomer = catchAsync(async (req, res, next) => {
 
 exports.addCustomerEmotion = catchAsync(async (req, res, next) => {
   const { current_emotion, customer_email, aisleName } = req.body;
-
+  
   //filtering customer with the given customer email inorder to append
   //emotion only if aisle doesn't exist in customer_emotions array
   var conditions = {
@@ -94,6 +94,7 @@ exports.addCustomerGesture = catchAsync(async (req, res, next) => {
     },
   };
 
+  console.log("gesture updating",req.body)
   customerModel.findOneAndUpdate(conditions, update, function (err, doc) {
     if (doc === null) {
       customerModel.updateOne(

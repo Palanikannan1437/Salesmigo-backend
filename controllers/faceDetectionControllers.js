@@ -14,13 +14,14 @@ exports.uploadLabeledImages = async (images) => {
   const descriptions = [];
 
   for (let i = 0; i < images.length; i++) {
-    const img = await canvas.loadImage(images[i]);
-
-    const detections = await faceapi
-      .detectSingleFace(img, new faceapi.SsdMobilenetv1Options())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-    descriptions.push(detections.descriptor);
+    if (images[i]) {
+      const img = await canvas.loadImage(images[i]);
+      const detections = await faceapi
+        .detectSingleFace(img, new faceapi.SsdMobilenetv1Options())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      descriptions.push(detections.descriptor);
+    }
   }
   return descriptions;
 };

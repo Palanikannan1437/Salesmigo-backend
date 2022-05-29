@@ -16,7 +16,7 @@ const options = {
   threadPoolSize: 12, // number of worker threads to create in thread pool
   workerSrc: "./face-matcher-worker.js", // code that executes in the worker thread
   debug: false, // verbose messages
-  minThreshold: 0, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
+  minThreshold: 0.5, // match returns first record that meets the similarity threshold, set to 0 to always scan all records
   descLength: 128, // descriptor length
 };
 
