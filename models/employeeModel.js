@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 
+//model for both workers and manager
 const EmployeeSchema = mongoose.Schema({
   employee_name: {
     type: String,

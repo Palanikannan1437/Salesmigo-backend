@@ -21,10 +21,6 @@ exports.userJoin = (id, username, email, room, type, photoUrl, status) => {
 
 exports.customerJoin = (username) => {
   const customer = { username };
-  // if (
-  //   customers.filter((customer) => customer.username === username).length === 0
-  // ) {
-  // }
   customers.push(customer);
   return customers;
 };

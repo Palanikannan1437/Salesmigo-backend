@@ -30,11 +30,12 @@ aisleRouter
   .route("/recommendations")
   .post(recommendationController.RecommendItems);
 
-//recommending items to a user based on previous purchases
+//recommending items to a user based on previous emotions
 aisleRouter
   .route("/recommendations-emotions")
   .post(recommendationController.RecommendItemsBasedOnEmotion);
 
+//recommending items to a user based on previous gestures
 aisleRouter
   .route("/recommendations-gestures")
   .post(recommendationController.RecommendItemsBasedOnGestures);

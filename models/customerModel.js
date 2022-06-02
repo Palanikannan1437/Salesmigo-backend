@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 
+//model for each customer
 const CustomerSchema = mongoose.Schema({
   customer_name: {
     type: String,
