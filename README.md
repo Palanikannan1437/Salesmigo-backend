@@ -21,8 +21,6 @@ I've hosted the backend-end app at:
 https://salesmigo-backend.herokuapp.com/
 
 
-
-
 ## Tech Stack
 
 **Client:** ReactJS(NextJS framework),face-api.js, tfjs-core, 

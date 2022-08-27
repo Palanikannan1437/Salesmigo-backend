@@ -26,11 +26,16 @@ exports.uploadLabeledImages = async (images) => {
   return descriptions;
 };
 
-exports.getDescriptorsFromDB = async (detectionDescriptor, req, res) => {
-  faceMatcher(detectionDescriptor, res);
+exports.getDescriptorsFromDB = async (
+  detectionDescriptor,
+  req,
+  res,
+  testingSpeedUsingJsonFile
+) => {
+  faceMatcher(detectionDescriptor, res, testingSpeedUsingJsonFile);
 };
 
-exports.getDescriptorsFromDB1 = async (detectionDescriptor) => {
+exports.getDescriptorsFromDBOldInefficient = async (detectionDescriptor) => {
   const faces = await customerModel.find(
     {},
     { customer_img_label: 1, customer_img_descriptions: 1 }

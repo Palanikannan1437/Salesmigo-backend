@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+//for various aisles/parts of the store
 const AisleModel = mongoose.Schema({
   aisleName: {
     type: String,
