@@ -182,7 +182,12 @@ exports.RecommendItemsBasedOnEmotion = catchAsync(async (req, res, next) => {
     { customer_emotions: 1 }
   );
 
-  console.log(customer_emotions);
+  const surprised_aisles = customer_emotions[0].customer_emotions.filter(
+    (emotion) => {
+      return emotion.emotion === "surprised";
+    }
+  );
+
   const happy_aisles = customer_emotions[0].customer_emotions.filter(
     (emotion) => {
       return emotion.emotion === "happy";
@@ -193,7 +198,11 @@ exports.RecommendItemsBasedOnEmotion = catchAsync(async (req, res, next) => {
     (emotion) => emotion.emotion === "neutral"
   );
 
-  const recommendation = [...happy_aisles, ...neutral_aisles];
+  const recommendation = [
+    ...surprised_aisles,
+    ...happy_aisles,
+    ...neutral_aisles,
+  ];
 
   res.status(200).json({
     status: "success",
@@ -204,6 +213,7 @@ exports.RecommendItemsBasedOnEmotion = catchAsync(async (req, res, next) => {
 exports.RecommendItemsBasedOnGestures = catchAsync(async (req, res, next) => {
   const { emailId } = req.body;
 
+  console.log(emailId);
   const customer_gestures = await CustomerModel.find(
     { customer_email: emailId },
     { customer_gestures: 1 }
@@ -212,15 +222,17 @@ exports.RecommendItemsBasedOnGestures = catchAsync(async (req, res, next) => {
   if (customer_gestures.length > 0) {
     const thumbs_up_aisles = customer_gestures[0].customer_gestures.filter(
       (gesture) => {
-        return gesture.gesture === "thumbs-up";
+        return gesture.gesture === "thumbs_up";
       }
     );
+    console.log(thumbs_up_aisles)
 
     const victory_aisles = customer_gestures[0].customer_gestures.filter(
       (gesture) => {
         return gesture.gesture === "victory";
       }
     );
+
     const recommendation = [...thumbs_up_aisles, ...victory_aisles];
 
     return res.status(200).json({
