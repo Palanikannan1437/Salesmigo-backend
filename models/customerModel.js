@@ -33,7 +33,6 @@ const CustomerSchema = mongoose.Schema({
 
   customer_gender: {
     type: String,
-    required: true,
   },
 
   customer_emotions: {

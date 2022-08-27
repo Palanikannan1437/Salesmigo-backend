@@ -21,6 +21,10 @@ exports.userJoin = (id, username, email, room, type, photoUrl, status) => {
 
 exports.customerJoin = (username) => {
   const customer = { username };
+  // if (
+  //   customers.filter((customer) => customer.username === username).length === 0
+  // ) {
+  // }
   customers.push(customer);
   return customers;
 };
@@ -76,7 +80,11 @@ exports.customerCatered = (customerUsername, workerId) => {
     if (user.id === workerId && user.customersCatering) {
       user.customersCatering = user.customersCatering.filter(
         (customerAllocated) => {
-          return customerAllocated.username.split(" ")[1] !== customerUsername;
+          console.log(
+            customerAllocated.username.split("_")[1],
+            customerUsername
+          );
+          return customerAllocated.username.split("_")[1] !== customerUsername;
         }
       );
     }
