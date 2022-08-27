@@ -1,7 +1,4 @@
-
-# Salesmigo Engage'22 ![Logo](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/th5xamgrr6se0x5ro4g6.png)
-
-Salesmigo project hosted on [`vercel`](https://salesmigo.vercel.app).
+# Salesmigo Engage'22
 
 ## Introduction - Salesmigo's aim
 
@@ -13,32 +10,64 @@ Salesmigo is your key to multiplying your sales you make!
 Elevate your workforce to bring out the best in them, 
 productivity and accuracy! In short a salesperson's best amigo!
 
+Note: 
+The hosted apps are very slow due to free tier limitations,
+it would work best if you used the local server instances instead!
+
+I've hosted the front-end app at: 
+https://vercel.com/palanikannan1437/salesmigo
+
+I've hosted the backend-end app at: 
+https://salesmigo-backend.herokuapp.com/
+
+
+
+
 ## Tech Stack
 
 **Client:** ReactJS(NextJS framework),face-api.js, tfjs-core, 
 Styled Components, ReactDnD
 
 **Server:** NodeJS(ExpressJS framework), face-api.js, tfjs-node, 
-AWS 
+AWS,Recombee
 
 
 ## Optimizations
 
+To increase the face decriptor matching downtime for face recognition,
+I've implemented multithreading in nodejs using node worker threads!
 
+As the size of the database increases,I noticed that just plainly iterating 
+through the list of databases and comparing the euclidean distance between
+the input descriptor and list of descriptors from the dataase increased by 10ms
+with every customer record I inserted in the database. So to reduce the downtime implemented
+comparing using worker threads by using shared buffer memory!
 
+- Face database with 10k records:
+  > iterative approach: 1 =>  ~100000ms / match
 
+  > my approach: threadPoolSize: 12 =>  ~1000 ms / match
+
+- Face database with 300k records:
+  > threadPoolSize: 1 => ~43 mins / match  
+  
+  > my approach: threadPoolSize: 12 => ~24 s / match
+
+  These results are based on my test run with loading
+  the records from a json file instead of a database due 
+  to free tier limitations on the number of request made!
 ## Run Locally
 
 Clone the project
 
 ```bash
-  git clone https://github.com/Palanikannan1437/Salesmigo.git
+  git clone https://github.com/Palanikannan1437/Salesmigo-backend.git
 ```
 
 Go to the project directory
 
 ```bash
-  cd Salesmigo
+  cd Salesmigo-backend
 ```
 
 Install dependencies
@@ -49,72 +78,55 @@ Install dependencies
 
 To start the server it in development mode,
 ```bash
-  npm run dev
+  node server.js
 ```
 
-To build and run the server in production mode(Recommended)
-```bash
-  npm run build 
-  npm run start
-```
+## API-Documentation
 
+Checkout my application's API Documentation at: https://documenter.getpostman.com/view/17862825/Uz5FKGd4
 
+## Deployment
 
-## Installation and Running the project
+Note: 
+The hosted apps are very slow due to free tier limitations and limits,
+it would work best if you used the local server instances instead!
 
-To setup the project, navigate to the main project folder and run
-```bash
-  npm install
-```
-To run it in development mode,
-```bash
-  npm run dev
-```
-To build and run in production (Recommended)
-```bash
-  npm run build 
-  npm run start
-```
+I've hosted the front-end app at: 
+https://vercel.com/palanikannan1437/salesmigo
+
+I've hosted the backend-end app at: 
+https://salesmigo-backend.herokuapp.com/
 
 ## Environment Variables for Client Side
 
 To run this project, you will need to add the following environment variables to your .env file
 
-`NEXTAUTH_URL`
+`NODE_ENV`
 
-`SECRET`
+`PORT`
 
-`GOOGLE_CLIENT_ID`
+`DATABASE`
 
-`GOOGLE_CLIENT_SECRET`
+`DATABASE_PASSWORD`
 
-`NEXT_PUBLIC_SERVER`
-
-`NEXT_PUBLIC_SERVER_SOCKET`
-
-
+`CLIENT_ID`
 ## Lessons Learned
 
-What did you learn while building this project? What challenges did you face and how did you overcome them?
+ From the start of this project,
+ - I have learnt about security aspects of our application like cors, jwt access tokens, refresh tokens,rotation of tokens,etc
+ - Proper architecture of your application's code for maintaining it in the long run
+
+ - Working properly with git branches...i.e. a new branch for each feature and then merging to the main branch if everything is working after deployment.
+
+ - Properly commenting stuff not only for others to read but even for you to understand the code later
+
+ - Recently I learnt about the production aspects as well..i.e. deploying my backend to aws and restart it on a crash automatically!
+
+ - AND the importance of proper error/exception handling, rejection handling and debugging the code!
+
+And specific to this project, I learnt to work with ML face recognition libraries and I read some research papers about which model is to be used with which use case, both at the frontend and backend!
 
 
 ## Demo
 
-Insert gif or link to demo
-
-
-## FAQ
-
-#### Question 1
-
-Answer 1
-
-#### Question 2
-
-Answer 2
-
-
-## Feedback
-
-If you have any feedback or queries, please reach out to us at akashmalinimurugu@gmail.com
-
+https://www.youtube.com/watch?v=IeTAEBTnJnU
