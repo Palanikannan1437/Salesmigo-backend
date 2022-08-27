@@ -18,7 +18,6 @@ exports.login_google = catchAsync(async (req, res, next) => {
     return next(new AppError("Register through your manager first!", 404));
   }
 
-  res.cookie("google-jwt", req.body.idToken);
   return res.status(200).json({
     status: "Login Successful",
     employee: {
@@ -45,10 +44,6 @@ exports.protect = catchAsync(async (req, res, next) => {
     return next(
       new AppError("You are not logged in! Please log in to get access", 401)
     );
-    // return res.status(401).json({
-    //   status: "fail",
-    //   message: "You are not logged in! Please log in to get access",
-    // });
   }
 
   const ticket = await client.verifyIdToken({
@@ -76,4 +71,3 @@ exports.restrictTo = (...roles) => {
     next();
   };
 };
-

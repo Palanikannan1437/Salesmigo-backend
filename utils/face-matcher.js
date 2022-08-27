@@ -12,7 +12,7 @@ let finalResults;
 // global options
 const options = {
   dbFile: `${__dirname}/customers.json`, // sample face db
-  dbMax: 100000, // maximum number of records to hold in memory (takes 512mb in memory)
+  dbMax: 100000, // maximum number of records to hold in memory
   threadPoolSize: 12, // number of worker threads to create in thread pool
   workerSrc: "./face-matcher-worker.js", // code that executes in the worker thread
   debug: false, // verbose messages
@@ -330,7 +330,7 @@ async function loadDB(count, data) {
   });
 }
 
-async function loadDBFromMongo(count, res, data) {
+async function loadDBFromMongo(count, data) {
   const previous = data.labels.length;
 
   t0 = process.hrtime.bigint();
@@ -392,10 +392,15 @@ module.exports = async (detectionDescriptor, res) => {
     workers: [],
     requestID: 0,
   };
+
+  //creating buffer memory for the worker threads to use
   await createBuffer(data);
 
-  // await loadDB(testOptions.dbFact, data);
-  await loadDBFromMongo(testOptions.dbFact, res, data);
+  if (testingSpeedUsingJsonFile) {
+    await loadDB(testOptions.dbFact, data);
+  } else {
+    await loadDBFromMongo(1, data);
+  }
 
   await workersStart(options.threadPoolSize, res, data);
   for (let i = 0; i < testOptions.maxJobs; i++) {

@@ -3,6 +3,7 @@ const faceDetectionContoller = require("./faceDetectionControllers");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
+//register a customer by reading face descriptors from the images sent over
 exports.registerCustomer = catchAsync(async (req, res, next) => {
   const images = req.body.customer_images.map((files) => {
     return files.url;
@@ -30,16 +31,28 @@ exports.registerCustomer = catchAsync(async (req, res, next) => {
 });
 
 exports.findCustomer = catchAsync(async (req, res, next) => {
+  const testingSpeedUsingJsonFile = false;
   await faceDetectionContoller.getDescriptorsFromDB(
     new Float32Array(Object.values(req.body.descriptor)),
     req,
-    res
+    res,
+    testingSpeedUsingJsonFile
+  );
+});
+
+exports.findCustomerTest = catchAsync(async (req, res, next) => {
+  const testingSpeedUsingJsonFile = true;
+  await faceDetectionContoller.getDescriptorsFromDB(
+    new Float32Array(Object.values(req.body.descriptor)),
+    req,
+    res,
+    testingSpeedUsingJsonFile
   );
 });
 
 exports.addCustomerEmotion = catchAsync(async (req, res, next) => {
   const { current_emotion, customer_email, aisleName } = req.body;
-  
+
   //filtering customer with the given customer email inorder to append
   //emotion only if aisle doesn't exist in customer_emotions array
   var conditions = {
@@ -94,7 +107,7 @@ exports.addCustomerGesture = catchAsync(async (req, res, next) => {
     },
   };
 
-  console.log("gesture updating",req.body)
+  console.log("gesture updating", req.body);
   customerModel.findOneAndUpdate(conditions, update, function (err, doc) {
     if (doc === null) {
       customerModel.updateOne(
@@ -120,7 +133,7 @@ exports.addCustomerGesture = catchAsync(async (req, res, next) => {
 });
 
 exports.findCustomerOldInefficient = catchAsync(async (req, res, next) => {
-  let result = await faceDetectionContoller.getDescriptorsFromDB1(
+  let result = await faceDetectionContoller.getDescriptorsFromDBOldInefficient(
     req.body.descriptor
   );
   if (result._label === "unknown") {

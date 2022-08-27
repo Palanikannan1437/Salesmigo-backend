@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+//for a team of staff i.e. a manager and workers under the manager
+//for implementing socket logic
 const StaffTeamSchema = mongoose.Schema({
   teamName: {
     type: String,
