@@ -17,5 +17,5 @@ services:
     depends_on:
       - nginx
     build: .
-    image: palanikannanm1437/portfolio-backend:latest
+    image: palanikannanm1437/salesmigo-backend:tagname
     restart: always
