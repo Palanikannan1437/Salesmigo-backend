@@ -20,6 +20,7 @@ https://vercel.com/palanikannan1437/salesmigo
 I've hosted the backend-end app at: 
 https://salesmigo-backend.herokuapp.com/
 
+--- 
 
 ## Tech Stack
 
@@ -29,6 +30,7 @@ Styled Components, ReactDnD
 **Server:** NodeJS(ExpressJS framework), face-api.js, tfjs-node, 
 AWS,Recombee
 
+--- 
 
 ## Optimizations
 
@@ -54,6 +56,9 @@ comparing using worker threads by using shared buffer memory!
   These results are based on my test run with loading
   the records from a json file instead of a database due 
   to free tier limitations on the number of request made!
+
+---
+
 ## Run Locally
 
 Clone the project
@@ -78,10 +83,13 @@ To start the server it in development mode,
 ```bash
   node server.js
 ```
+---
 
 ## API-Documentation
 
 Checkout my application's API Documentation at: https://documenter.getpostman.com/view/17862825/Uz5FKGd4
+
+---
 
 ## Deployment
 
@@ -94,6 +102,8 @@ https://vercel.com/palanikannan1437/salesmigo
 
 I've hosted the backend-end app at: 
 https://salesmigo-backend.herokuapp.com/
+
+---
 
 ## Environment Variables for Client Side
 
@@ -108,6 +118,9 @@ To run this project, you will need to add the following environment variables to
 `DATABASE_PASSWORD`
 
 `CLIENT_ID`
+
+---
+
 ## Lessons Learned
 
  From the start of this project,
@@ -124,6 +137,7 @@ To run this project, you will need to add the following environment variables to
 
 And specific to this project, I learnt to work with ML face recognition libraries and I read some research papers about which model is to be used with which use case, both at the frontend and backend!
 
+---
 
 ## Demo
 

@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    volumes:
+      - ./conf:/etc/nginx/conf.d
+      - /etc/letsencrypt:/cert
+    ports:
+      - "443:443"
+      - "80:80"
+    restart: always
+
+  api:
+    depends_on:
+      - nginx
+    build: .
+    image: palanikannanm1437/portfolio-backend:latest
+    restart: always
