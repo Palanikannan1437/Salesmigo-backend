@@ -14,7 +14,7 @@ process.on("uncaughtException", (err) => {
 //initializing environment variables
 dotenv.config({ path: "./.env" });
 
-const app = require("./app.js");
+const app = require("./src/app.js");
 const httpServer = createServer(app);
 
 //connecting to our database
@@ -40,7 +40,7 @@ const io = new Server(httpServer, {
 });
 
 //handling all socket requestion
-app.use(require("./controllers/SocketArchitecture/Websockets")(io));
+app.use(require("./src/controllers/SocketArchitecture/Websockets")(io));
 
 //we start listening to incoming requests
 httpServer.listen(PORT, () => {

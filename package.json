@@ -4,10 +4,11 @@
   "description": "Backend for face recognition",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "debug": "ndb server.js",
-    "start:prod": "NODE_ENV=production node server.js"
+    "start:prod": "NODE_ENV=production node server.js",
+    "test": "vitest --run --reporter verbose",
+    "test:watch": "vitest --reporter verbose"
   },
   "repository": {
     "type": "git",
